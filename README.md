@@ -267,6 +267,33 @@ pip install claim-layer
 
 ---
 
+## Quickstart
+
+No configuration. No API keys. Works in under 30 seconds.
+
+```python
+from claimlayer import ClaimLayer
+
+cl = ClaimLayer()
+
+cl.ingest([
+    "ACME payment terms are 30 days",
+    "ACME payment terms are thirty days",
+    "ACME payment terms are 45 days",
+])
+
+result = cl.ask("What are the payment terms for ACME?")
+print(result)
+```
+
+> **Note:** The default embedding is not semantic — it uses word-overlap hashing.
+> For production, pass a real embedding provider:
+> `ClaimLayer(embedding_provider=MyProvider())`.
+
+See `examples/quickstart.py` for a runnable version.
+
+---
+
 ## Usage
 
 ```python
