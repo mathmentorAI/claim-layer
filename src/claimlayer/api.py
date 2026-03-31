@@ -52,10 +52,16 @@ class ClaimLayer:
         embeddings are computed via the provider and persisted alongside each
         claim so they are available for semantic search.
         """
-        # Temporarily inject the provider into the embedding module so that
-        # ClaimLayerStore's semantic path (enable_semantic=True) uses our
-        # provider instead of the stub.  The original is restored in `finally`
-        # so other callers are never affected.
+        # Embedding injection via scoped module-level override.
+        #
+        # KNOWN LIMITATION: this is not safe for concurrent use (threads/async).
+        # Two simultaneous ingest() calls on different ClaimLayer instances will
+        # race on the shared _emb_module.embed reference.
+        #
+        # Planned fix: pass the provider through ClaimLayerStore's ingestion
+        # path explicitly instead of patching the module.  This requires a
+        # small signature change in store.ingest_document() and is tracked as
+        # a known design decision, not a bug.
         original_embed = _emb_module.embed
         _emb_module.embed = self._provider.embed
         try:

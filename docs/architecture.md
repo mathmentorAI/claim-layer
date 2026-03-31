@@ -253,6 +253,31 @@ SQLite-backed store. Accepts `enable_semantic: bool = False` (keyword-only). Whe
 
 ---
 
+## Public API (`claimlayer`)
+
+The `claimlayer` package is a thin public wrapper over the `claim_layer` core. It exposes a single class:
+
+```python
+from claimlayer import ClaimLayer
+
+cl = ClaimLayer(db_path, embedding_provider=MyProvider(), project_id="demo")
+cl.ingest(documents)
+result = cl.ask("What are the payment terms for ACME?")
+```
+
+**Design position:**
+ClaimLayer is a deterministic truth engine that requires an embedding provider. The embedding provider is the only external dependency. All truth computation — deduplication, scoring, normalization, contradiction handling — is deterministic and provider-independent.
+
+### Embedding injection (current implementation and known limitation)
+
+During `ingest()`, the provider is injected via a scoped override of the module-level `embed` function in `claim_layer.semantic.embeddings`. The original is restored in a `finally` block.
+
+**This is not safe for concurrent use.** Two simultaneous `ingest()` calls on different `ClaimLayer` instances will race on the shared reference.
+
+Planned fix: pass the provider explicitly through `ClaimLayerStore.ingest_document()` instead of patching the module. This will be a small signature change deferred to a future version and tracked as a known design decision, not a bug.
+
+---
+
 ## Design Principles
 
 ### Separation of concerns
