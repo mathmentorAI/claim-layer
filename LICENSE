@@ -2,10 +2,11 @@ Business Source License 1.1
 
 Licensor:             Francisco Jesús Hernández de Blas
 Licensed Work:        ClaimLayer
-Additional Use Grant: Internal use, evaluation, and non-production environments.
-                      Production use requires an explicit commercial license granted
-                      by Francisco Jesús Hernández de Blas (or entities authorized
-                      by him). Competing with the Licensor is prohibited.
+Additional Use Grant: Non-production, testing, and evaluation only. Any use in a
+                      Production Environment (including internal use for real business
+                      operations) requires an explicit commercial license granted by
+                      the Licensor (or authorized entities). Competing with the
+                      Licensor is strictly prohibited.
 Change Date:          2030-03-31
 Change License:       Apache License, Version 2.0
 
@@ -17,26 +18,48 @@ The Licensor hereby grants you the right to copy, modify, create derivative work
 redistribute, and make non-production use of the Licensed Work, subject to the
 following conditions:
 
-1. **Usage Restrictions**
-   You may not use the Licensed Work, or any derivative of it, in any production
-   environment without a commercial license. You may not use the Licensed Work to
-   provide a commercial product or service that competes with the Licensor's offerings.
+#### 1. Usage Restrictions (The "Production" and "Competition" Rules)
 
-2. **Internal Use**
-   You may use the Licensed Work within your organization for internal purposes,
-   including development, testing, and evaluation.
+**No Production Use:** You may not use the Licensed Work, or any derivative of it,
+in any Production Environment without a valid commercial license.
 
-3. **Non-Production Use**
-   You may use the Licensed Work for research, experimentation, and non-commercial
-   applications.
+**No Competition:** You may not use the Licensed Work to build, offer, or support a
+commercial product or service that competes with Evidence Intelligence, AI
+verification, RAG auditing, or any offerings substantially similar in purpose to the
+Licensed Work.
 
-4. **Distribution**
-   You may distribute the Licensed Work or derivatives, provided that this License is
-   included and no additional restrictions are imposed.
+#### 2. Permitted Non-Production Use (Testing & Evaluation)
 
-5. **No Trademark Rights**
-   This License does not grant any rights to use the Licensor's trademarks, brand,
-   or logos.
+You may use the Licensed Work solely for:
+
+- Local development and experimentation.
+- Technical evaluation and proof-of-concept (PoC) testing using dummy or
+  non-mission-critical data.
+- Academic or non-commercial research.
+
+#### 3. Distribution
+
+You may distribute the Licensed Work or derivatives, provided that this License is
+included unmodified and no additional restrictions are imposed.
+
+#### 4. Contributions (Inbound = Outbound)
+
+Unless explicitly stated otherwise, any code or modifications you submit to the
+Licensor for inclusion in the Licensed Work shall be licensed under the same terms
+as this License, granting the Licensor the perpetual right to use and re-license
+those contributions.
+
+#### 5. Termination and Cure Period
+
+This License and the rights granted hereunder will terminate automatically if you
+fail to comply with any of its terms and fail to cure such breach within thirty (30)
+days of becoming aware of the breach or receiving notice from the Licensor. Upon
+termination, you must cease all use of the Licensed Work.
+
+#### 6. No Trademark Rights
+
+This License does not grant any rights to use the Licensor's trademarks, brand
+names, or logos (including "Deltoryx" or "The Claim Layer").
 
 ---
 
@@ -48,28 +71,32 @@ will thereafter be governed by that license.
 
 ---
 
-### Disclaimer
+### Disclaimer & Limitation of Liability
 
-THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. TO THE MAXIMUM
+EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY (INCLUDING DIRECT, INDIRECT, OR CONSEQUENTIAL
+DAMAGES) ARISING FROM THE USE OF THE LICENSED WORK.
 
 ---
 
-### Limitation of Liability
+### Governing Law and Jurisdiction
 
-IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY
-ARISING FROM THE USE OF THE LICENSED WORK.
+This License shall be governed by and construed in accordance with the laws of Spain.
+Any disputes arising under or in connection with this License shall be subject to the
+exclusive jurisdiction of the courts of Madrid, Spain.
 
 ---
 
 ### Definitions
 
-- **Licensed Work**: The software and associated materials provided under this License.
+- **Licensed Work**: The software, source code, and associated materials provided
+  under this License.
 - **Licensor**: Francisco Jesús Hernández de Blas.
+- **Production Environment**: Any environment where the Licensed Work is used to
+  process real organizational data, support ongoing business operations, serve
+  external customers, or generate direct or indirect commercial value.
 - **You**: The individual or entity exercising permissions under this License.
-- **Change Date**: The date on which this License converts to the Change License (2030-03-31).
-- **Change License**: The license that will apply after the Change Date (Apache License, Version 2.0).
 
 ---
 
