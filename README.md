@@ -1,316 +1,289 @@
-# claim-layer
+# ClaimLayer
 
-`claim-layer` is the reusable Python core for Claim Layer's Evidence Intelligence architecture.
+**Compute truth from evidence, not text**
 
-It gives you a portable evidence store built on SQLite so any project can ingest structured evidence, keep provenance, detect contradictions, and query an evolving evidence state without depending on this repository's FastAPI app, workspace layout, or frontend.
+---
 
-## What This Package Is For
+## What this is
 
-Use this package when you want to:
+ClaimLayer is a deterministic engine that computes truth from structured evidence.
 
-- ingest normalized evidence from any pipeline
-- persist documents, entities, claims, facts, and source snippets
-- query evidence by entity and fact type
-- track contradictions across sources
-- materialize evidence snapshots over time
-- derive graph views and higher-level knowledge summaries
+Not generation.
+Not retrieval.
+Computation.
 
-This package is a core library. It is not an app server, not a UI kit, and not tied to a specific LLM provider.
+---
 
-## What It Includes
+## The problem
 
-- SQLite-backed `ClaimLayerStore`
-- dataclasses for normalized ingestion payloads
-- entity aliasing and light deduplication
-- evidence state snapshots and deltas
-- contradiction detection
-- provenance and paragraph indexes
-- evidence graph helpers
-- derived knowledge and confidence accumulation queries
+Modern AI systems (LLMs + RAG) have a fundamental limitation:
 
-## What It Does Not Include
+- They retrieve text, not facts
+- They generate answers, not truth
+- They cannot detect contradictions
+- Confidence scores are opaque and non-reproducible
 
-- FastAPI routes
-- auth
-- frontend components
-- conversation storage
-- narrative UI logic
-- report export specific to this repo
-- LLM-bound verification workflows
+```
+Same question → different answer
+Different documents → silent conflicts
+Confidence → arbitrary number
+```
+
+There is no state of knowledge. Only text.
+
+---
+
+## The insight
+
+Truth is not something you generate.
+
+It is something you compute from evidence.
+
+---
+
+## The model
+
+ClaimLayer introduces a minimal but strict model:
+
+**Claim**
+
+A unit of extracted information from a source.
+
+```json
+{
+  "claim_id": 1,
+  "text": "ACME payment terms are 30 days",
+  "source": "Contract_A.pdf"
+}
+```
+
+**Fact**
+
+A structured representation of a claim:
+
+```
+(entity, predicate, value)
+```
+
+Example:
+
+```
+("ACME", "payment_terms", "30 days")
+```
+
+**Canonical Value**
+
+A normalized representation of the value:
+
+```
+"30 days"     → 30
+"thirty days" → 30
+```
+
+**Evidence**
+
+Each fact carries a score:
+
+```
+score ∈ [0, 1]
+```
+
+**Truth Resolution**
+
+Truth is computed by:
+
+1. Grouping facts by `(entity, predicate, canonical_value)`
+2. Deduplicating evidence
+3. Aggregating scores using `noisy_or(scores)`
+4. Applying contradiction penalty
+
+```
+final_confidence = noisy_or(scores) × penalty
+```
+
+---
+
+## Example
+
+**Input**
+
+Document A
+```
+ACME payment terms are 30 days
+```
+
+Document B
+```
+ACME payment terms are thirty days
+```
+
+Document C
+```
+ACME payment terms are 45 days
+```
+
+**Query**
+```
+What are the payment terms for ACME?
+```
+
+**Output**
+
+```json
+{
+  "value": "30 days",
+  "canonical_value": 30,
+  "confidence": 0.36,
+  "confidence_explanation": {
+    "selected_evidence_count": 2,
+    "total_evidence_count": 3,
+    "aggregation_method": "noisy_or",
+    "penalty": 0.5,
+    "penalty_reason": "2 competing values detected"
+  },
+  "contradictions": [
+    {
+      "value": "45 days",
+      "confidence": 0.18
+    }
+  ]
+}
+```
+
+---
+
+## Guarantees
+
+ClaimLayer is designed around strict guarantees:
+
+**G1 — Query-conditioned truth**
+Truth is computed only from evidence relevant to the query.
+
+**G2 — Evidence-backed answers**
+Every output is traceable to concrete evidence.
+
+**G3 — Canonical consistency**
+Semantically equivalent values are merged.
+
+**G4 — Controlled confidence**
+Confidence is deterministic, reproducible, and mathematically defined.
+
+**G5 — Explicit contradictions**
+Conflicts are not hidden — they are surfaced and penalized.
+
+---
+
+## What this is NOT
+
+- Not a chatbot
+- Not a vector database
+- Not a RAG pipeline
+- Not probabilistic reasoning
+
+This is: an evidence computation engine.
+
+---
+
+## Architecture (simplified)
+
+```
+Documents
+   ↓
+Claims extraction
+   ↓
+Facts (entity, predicate, value)
+   ↓
+Normalization (canonical_value)
+   ↓
+Deduplication
+   ↓
+Aggregation (noisy_or)
+   ↓
+Contradiction handling
+   ↓
+Truth
+```
+
+---
+
+## Current limitations
+
+These are explicit and intentional:
+
+**1. Claim-level retrieval**
+Retrieval operates at claim granularity. A claim may contain multiple facts, not all relevant to the query.
+
+**2. No cross-document deduplication**
+Duplicate content across documents may inflate confidence.
+
+**3. Unit ambiguity**
+`"30 days"` and `"30 euros"` both normalize to `30`.
+Planned fix: `(quantity, unit)` → `(30, "days")`.
+
+**4. Basic normalization**
+Currently supports numeric values and English word numbers.
+
+---
+
+## Roadmap
+
+- Fact-level indexing (G5)
+- Unit-aware canonical values
+- Cross-document deduplication
+- Multi-dimensional confidence model
+
+---
+
+## Why this matters
+
+AI systems today optimize for plausibility.
+
+ClaimLayer optimizes for truth.
+
+---
+
+## Category
+
+We call this: **Evidence Intelligence**
+
+---
 
 ## Installation
 
-From a local path:
-
 ```bash
-pip install /path/to/claim-layer
+pip install claim-layer
 ```
 
-From Git:
+---
 
-```bash
-pip install "claim-layer @ git+ssh://git@github.com/ORG/claim-layer.git"
-```
+## Status
 
-If your environment uses an older `pip`, prefer a normal install over editable mode.
+**v0.3 — Stable core**
 
-## Public API
+- Deterministic truth computation
+- Canonical normalization
+- Contradiction handling
+- Explainable confidence
 
-Main entrypoint:
+---
+
+## Usage
 
 ```python
 from claim_layer import ClaimLayerStore
-```
+from claim_layer.api import ask
 
-Constructor:
+store = ClaimLayerStore("./evidence.db")
 
-```python
-store = ClaimLayerStore("./data/evidence.db")
-```
-
-Main ingestion method:
-
-```python
+# Ingest documents
 store.ingest_document(payload)
+
+# Query
+response = ask(store, project_id="demo", query="payment terms", top_k=20)
 ```
 
-## Data Model
+---
 
-The package expects a normalized document payload with these concepts:
+*If your system cannot explain why something is true, detect when it is wrong, or quantify uncertainty deterministically — then it does not compute truth. It generates text.*
 
-- `project_id`: logical partition key
-- `filename`: source document name
-- `entities`: known entities for the document
-- `claims`: textual claims with confidence and provenance
-- `facts`: structured facts linked to claims and entities
-- `sources`: provenance snippets inside each fact
-
-Dataclasses exposed by the package:
-
-- `IngestedDocument`
-- `IngestedEntity`
-- `IngestedClaim`
-- `IngestedFact`
-- `IngestedSource`
-
-## Minimal Example
-
-```python
-from pathlib import Path
-from claim_layer import ClaimLayerStore, IngestedDocument
-
-store = ClaimLayerStore(Path("./evidence.db"))
-
-payload = IngestedDocument(
-    project_id="demo",
-    filename="contract.pdf",
-    entities=[
-        {"entity_id": "acme", "name": "Acme Corp", "entity_type": "organization"},
-    ],
-    claims=[
-        {
-            "claim_id": "c1",
-            "text": "Acme Corp agrees to pay $50,000.",
-            "confidence": 0.91,
-            "page": 3,
-            "paragraph_id": "0002",
-        }
-    ],
-    facts=[
-        {
-            "claim_ref": "c1",
-            "entity_ref": "acme",
-            "fact_type": "payment_amount",
-            "value": "$50,000",
-            "sources": [
-                {"page": 3, "paragraph_id": "0002", "text": "Acme Corp agrees to pay $50,000."}
-            ],
-        }
-    ],
-)
-
-store.ingest_document(payload)
-result = store.query_evidence("demo", "Acme Corp", "payment_amount")
-print(result["candidate_values"])
-```
-
-## Accepted Input Shapes
-
-You can ingest either:
-
-- package dataclasses
-- plain dictionaries with equivalent fields
-
-Example dictionary payload:
-
-```python
-payload = {
-    "project_id": "demo",
-    "filename": "contract.pdf",
-    "entities": [
-        {"entity_id": "acme", "name": "Acme Corp", "entity_type": "organization"},
-    ],
-    "claims": [
-        {
-            "claim_id": "c1",
-            "text": "Acme Corp agrees to pay $50,000.",
-            "confidence": 0.91,
-            "page": 3,
-            "paragraph_id": "0002",
-        }
-    ],
-    "facts": [
-        {
-            "claim_ref": "c1",
-            "entity_ref": "acme",
-            "fact_type": "payment_amount",
-            "value": "$50,000",
-            "sources": [
-                {"page": 3, "paragraph_id": "0002", "text": "Acme Corp agrees to pay $50,000."}
-            ],
-        }
-    ],
-}
-
-store.ingest_document(payload)
-```
-
-## Core Capabilities
-
-Persistence and ingestion:
-
-- `ingest_document`
-- `upsert_document`
-- `upsert_entity`
-- `upsert_entity_with_dedup`
-- `insert_claim`
-- `insert_fact`
-- `insert_fact_source`
-- `delete_document_by_filename`
-
-Retrieval and evidence queries:
-
-- `get_entities`
-- `get_claims`
-- `get_facts`
-- `get_contradictions`
-- `get_cross_document_entities`
-- `get_fact_types_summary`
-- `query_evidence`
-
-Evidence state:
-
-- `capture_snapshot`
-- `get_state_history`
-- `get_evidence_state`
-- `compute_delta`
-- `get_evidence_units`
-
-Derived intelligence:
-
-- `derive_knowledge`
-- `get_confidence_accumulation`
-- `detect_gaps`
-- `benchmark_facts`
-
-Provenance helpers:
-
-- `get_paragraphs_for_entity`
-- `get_paragraphs_for_fact_type`
-
-Graph helpers:
-
-- `get_evidence_graph`
-- `get_entity_clusters`
-- `get_cluster_facts`
-
-## Storage Model
-
-The SQLite schema stores:
-
-- `documents`
-- `entities`
-- `claims`
-- `facts`
-- `fact_sources`
-- `entity_aliases`
-- `evidence_snapshots`
-
-This makes the package suitable for:
-
-- single-user local apps
-- backend services
-- test fixtures
-- embedded evidence stores per project or per tenant
-
-## Recommended Integration Pattern
-
-For a new project:
-
-1. Build your own extraction pipeline.
-2. Normalize its output into the `IngestedDocument` shape.
-3. Call `store.ingest_document(...)`.
-4. Use the query helpers for API routes, analytics, or reasoning layers.
-
-That keeps your extraction pipeline and your evidence model decoupled.
-
-## Example: Build an API on Top
-
-```python
-from fastapi import FastAPI
-from claim_layer import ClaimLayerStore
-
-app = FastAPI()
-store = ClaimLayerStore("./data/evidence.db")
-
-@app.get("/evidence/query")
-def evidence_query(project_id: str, entity: str, fact_type: str):
-    return store.query_evidence(project_id, entity, fact_type)
-```
-
-## Limits and Current Scope
-
-This package currently assumes:
-
-- a SQLite backend
-- normalized ingestion input
-- project partitioning by `project_id`
-- deterministic persistence and query behavior
-
-If you need:
-
-- Postgres
-- vector search
-- LLM verification
-- report rendering
-- multi-service orchestration
-
-those should sit on top of this package, not inside its core store.
-
-## Compatibility
-
-- Python `>=3.9`
-- no required third-party runtime dependencies
-
-## Tests
-
-The package includes tests at:
-
-- [tests/test_store.py](./tests/test_store.py)
-
-Run them with:
-
-```bash
-PYTHONPATH=src python3 -m pytest tests -q
-```
-
-## Versioning Guidance
-
-Treat the following as the stable contract:
-
-- constructor: `ClaimLayerStore(db_path)`
-- ingestion: `ingest_document(payload)`
-- normalized payload fields
-- read/query methods documented above
-
-If you evolve the payload shape, version it deliberately and keep adapters at the project boundary.
+*ClaimLayer is the missing layer between data and reasoning.*

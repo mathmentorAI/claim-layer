@@ -25,6 +25,7 @@ class IngestedClaim:
     confidence: float = 0.0
     page: int | None = None
     paragraph_id: str | None = None
+    embedding: list[float] | None = None
 
 
 @dataclass

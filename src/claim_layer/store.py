@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS claims (
     page INTEGER,
     paragraph_id TEXT,
     pipeline_version TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    embedding TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS facts (
@@ -127,6 +128,7 @@ def _as_claim(value: IngestedClaim | dict[str, Any]) -> IngestedClaim:
         confidence=float(value.get("confidence") or 0.0),
         page=value.get("page"),
         paragraph_id=value.get("paragraph_id"),
+        embedding=value.get("embedding"),
     )
 
 
@@ -138,6 +140,16 @@ def _as_source(value: IngestedSource | dict[str, Any]) -> IngestedSource:
         paragraph_id=value.get("paragraph_id"),
         text=str(value.get("text") or ""),
     )
+
+
+def _encode_embedding(vec: list[float]) -> str:
+    return json.dumps(vec)
+
+
+def _decode_embedding(raw: str | None) -> list[float] | None:
+    if raw is None:
+        return None
+    return json.loads(raw)
 
 
 def _as_fact(value: IngestedFact | dict[str, Any]) -> IngestedFact:
@@ -154,9 +166,10 @@ def _as_fact(value: IngestedFact | dict[str, Any]) -> IngestedFact:
 
 
 class ClaimLayerStore:
-    def __init__(self, db_path: str | Path) -> None:
+    def __init__(self, db_path: str | Path, *, enable_semantic: bool = False) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.enable_semantic = enable_semantic
         self._ensure_schema()
 
     @contextmanager
@@ -181,6 +194,11 @@ class ClaimLayerStore:
                 "INSERT OR REPLACE INTO schema_meta (key, value) VALUES (?, ?)",
                 ("schema_version", str(SCHEMA_VERSION)),
             )
+            # Migration: add embedding column to existing databases (idempotent).
+            try:
+                conn.execute("ALTER TABLE claims ADD COLUMN embedding TEXT DEFAULT NULL")
+            except sqlite3.OperationalError:
+                pass  # column already exists
 
     @staticmethod
     def _similarity_score(left: str, right: str) -> float:
@@ -422,6 +440,40 @@ class ClaimLayerStore:
             )
             return int(cursor.lastrowid)
 
+    def _update_claim_embedding(self, claim_id: int, embedding: list[float]) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                "UPDATE claims SET embedding = ? WHERE id = ?",
+                (_encode_embedding(embedding), claim_id),
+            )
+
+    def get_claim_embedding(self, claim_id: int) -> list[float] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT embedding FROM claims WHERE id = ?", (claim_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        return _decode_embedding(row["embedding"])
+
+    def get_claims_with_embeddings(self, project_id: str) -> list[dict[str, Any]]:
+        """Return all claims that have a stored embedding, for future vector indexing."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT c.id, c.text, c.embedding
+                FROM claims c
+                JOIN documents d ON d.id = c.document_id
+                WHERE d.project_id = ? AND c.embedding IS NOT NULL
+                ORDER BY c.id
+                """,
+                (project_id,),
+            ).fetchall()
+        return [
+            {"id": row["id"], "text": row["text"], "embedding": _decode_embedding(row["embedding"])}
+            for row in rows
+        ]
+
     def get_claims(self, document_id: int | None = None, project_id: str | None = None) -> list[dict[str, Any]]:
         with self._conn() as conn:
             if document_id is not None:
@@ -488,7 +540,7 @@ class ClaimLayerStore:
             claim = _as_claim(raw_claim)
             if not claim.text:
                 continue
-            claim_map[claim.claim_id or claim.text] = self.insert_claim(
+            claim_db_id = self.insert_claim(
                 document_id=doc_id,
                 text=claim.text,
                 confidence=claim.confidence,
@@ -497,6 +549,13 @@ class ClaimLayerStore:
                 external_id=claim.claim_id or None,
                 pipeline_version=payload.pipeline_version,
             )
+            claim_map[claim.claim_id or claim.text] = claim_db_id
+
+            if self.enable_semantic:
+                from .semantic.embeddings import embed  # lazy — cached after first import
+                vec = claim.embedding if claim.embedding is not None else embed(claim.text)
+                if vec:
+                    self._update_claim_embedding(claim_db_id, vec)
 
         facts_inserted = 0
         for raw_fact in payload.facts:

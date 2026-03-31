@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  invariants:
+    name: System Guarantee Invariants (blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run invariant tests
+        run: PYTHONPATH=src python -m pytest tests/invariants/ -v -s
+        # Failure here means a system guarantee has been violated.
+        # Do NOT bypass. Follow the Change Policy in docs/guarantees.md.
+        # The -s flag ensures the Guarantee Diff Summary is printed in CI logs.
+
+  tests:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run all tests
+        run: PYTHONPATH=src python -m pytest tests/ -v
