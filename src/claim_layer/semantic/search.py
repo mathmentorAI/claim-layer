@@ -14,9 +14,15 @@ def semantic_search(
     project_id: str,
     query: str,
     top_k: int = 20,
+    embed_fn=None,
 ) -> list[tuple[int, float]]:
-    """Pure vector retrieval. Returns (claim_id, similarity) sorted by similarity DESC."""
-    query_vec = embed(query)
+    """Pure vector retrieval. Returns (claim_id, similarity) sorted by similarity DESC.
+
+    embed_fn — optional callable (str) -> List[float].  When provided it is used
+    instead of the module-level stub, allowing callers to inject a real provider
+    without modifying this module.
+    """
+    query_vec = (embed_fn or embed)(query)
     if not query_vec:
         return []
 

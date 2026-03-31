@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claim-layer"
-version = "0.1.0"
-description = "Reusable Evidence Intelligence core from Claim Layer"
+version = "0.3.0"
+description = "Compute truth from evidence, not text"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "Proprietary"}

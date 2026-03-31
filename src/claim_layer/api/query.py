@@ -16,8 +16,9 @@ def ask(
     project_id: str,
     query: str,
     top_k: int = 20,
+    embed_fn=None,
 ) -> dict[str, Any]:
-    hits = semantic_search(store, project_id, query, top_k)
+    hits = semantic_search(store, project_id, query, top_k, embed_fn=embed_fn)
     if not hits:
         # No semantic match → no evidence relevant to this query.
         # Do NOT fall through to hybrid_search: an empty hit set would trigger
