@@ -1,275 +1,68 @@
 # ClaimLayer
 
-**Compute truth from evidence, not text**
+**Deterministic truth engine for reasoning over unstructured data.**
+
+ClaimLayer is the open-source implementation of the **Evidence Intelligence** paradigm:
+a computational layer that transforms unstructured text into **structured, auditable, and contradiction-aware knowledge**.
 
 ---
 
-## What this is
+## Why ClaimLayer
 
-ClaimLayer is a deterministic engine that computes truth from structured evidence.
+Most AI systems today follow this pattern:
 
-Not generation.
-Not retrieval.
-Computation.
+```
+Data → Retrieval (RAG) → LLM → Answer
+```
+
+This has a fundamental limitation:
+
+- No explicit representation of truth
+- No knowledge state
+- No contradiction handling
+- No auditability
+
+ClaimLayer introduces the missing layer:
+
+```
+Data → Retrieval → ClaimLayer → Deterministic Knowledge → LLM (optional)
+```
+
+Instead of generating answers from text, ClaimLayer:
+
+- Constructs **evidence units**
+- Tracks **source-level provenance**
+- Detects **contradictions as first-class objects**
+- Computes **confidence mathematically**
+- Maintains an explicit **epistemic state (Eₜ)**
 
 ---
 
-## The problem
+## Core Concept
 
-Modern AI systems (LLMs + RAG) have a fundamental limitation:
-
-- They retrieve text, not facts
-- They generate answers, not truth
-- They cannot detect contradictions
-- Confidence scores are opaque and non-reproducible
+Knowledge is not generated.
+It is computed from evidence.
 
 ```
-Same question → different answer
-Different documents → silent conflicts
-Confidence → arbitrary number
+Kₜ = F(Eₜ)
 ```
 
-There is no state of knowledge. Only text.
+Where:
 
----
-
-## The insight
-
-Truth is not something you generate.
-
-It is something you compute from evidence.
-
----
-
-## The model
-
-ClaimLayer introduces a minimal but strict model:
-
-**Claim**
-
-A unit of extracted information from a source.
-
-```json
-{
-  "claim_id": 1,
-  "text": "ACME payment terms are 30 days",
-  "source": "Contract_A.pdf"
-}
-```
-
-**Fact**
-
-A structured representation of a claim:
-
-```
-(entity, predicate, value)
-```
-
-Example:
-
-```
-("ACME", "payment_terms", "30 days")
-```
-
-**Canonical Value**
-
-A normalized representation of the value:
-
-```
-"30 days"     → 30
-"thirty days" → 30
-```
-
-**Evidence**
-
-Each fact carries a score:
-
-```
-score ∈ [0, 1]
-```
-
-**Truth Resolution**
-
-Truth is computed by:
-
-1. Grouping facts by `(entity, predicate, canonical_value)`
-2. Deduplicating evidence
-3. Aggregating scores using `noisy_or(scores)`
-4. Applying contradiction penalty
-
-```
-final_confidence = noisy_or(scores) × penalty
-```
-
----
-
-## Example
-
-**Input**
-
-Document A
-```
-ACME payment terms are 30 days
-```
-
-Document B
-```
-ACME payment terms are thirty days
-```
-
-Document C
-```
-ACME payment terms are 45 days
-```
-
-**Query**
-```
-What are the payment terms for ACME?
-```
-
-**Output**
-
-```json
-{
-  "value": "30 days",
-  "canonical_value": 30,
-  "confidence": 0.36,
-  "confidence_explanation": {
-    "selected_evidence_count": 2,
-    "total_evidence_count": 3,
-    "aggregation_method": "noisy_or",
-    "penalty": 0.5,
-    "penalty_reason": "2 competing values detected"
-  },
-  "contradictions": [
-    {
-      "value": "45 days",
-      "confidence": 0.18
-    }
-  ]
-}
-```
-
----
-
-## Guarantees
-
-ClaimLayer is designed around strict guarantees:
-
-**G1 — Query-conditioned truth**
-Truth is computed only from evidence relevant to the query.
-
-**G2 — Evidence-backed answers**
-Every output is traceable to concrete evidence.
-
-**G3 — Canonical consistency**
-Semantically equivalent values are merged.
-
-**G4 — Controlled confidence**
-Confidence is deterministic, reproducible, and mathematically defined.
-
-**G5 — Explicit contradictions**
-Conflicts are not hidden — they are surfaced and penalized.
-
----
-
-## What this is NOT
-
-- Not a chatbot
-- Not a vector database
-- Not a RAG pipeline
-- Not probabilistic reasoning
-
-This is: an evidence computation engine.
-
----
-
-## Architecture (simplified)
-
-```
-Documents
-   ↓
-Claims extraction
-   ↓
-Facts (entity, predicate, value)
-   ↓
-Normalization (canonical_value)
-   ↓
-Deduplication
-   ↓
-Aggregation (noisy_or)
-   ↓
-Contradiction handling
-   ↓
-Truth
-```
-
----
-
-## Current limitations
-
-These are explicit and intentional:
-
-**1. Claim-level retrieval**
-Retrieval operates at claim granularity. A claim may contain multiple facts, not all relevant to the query.
-
-**2. No cross-document deduplication**
-Duplicate content across documents may inflate confidence.
-
-**3. Unit ambiguity**
-`"30 days"` and `"30 euros"` both normalize to `30`.
-Planned fix: `(quantity, unit)` → `(30, "days")`.
-
-**4. Basic normalization**
-Currently supports numeric values and English word numbers.
-
----
-
-## Roadmap
-
-- Fact-level indexing (G5)
-- Unit-aware canonical values
-- Cross-document deduplication
-- Multi-dimensional confidence model
-
----
-
-## Why this matters
-
-AI systems today optimize for plausibility.
-
-ClaimLayer optimizes for truth.
-
----
-
-## Category
-
-We call this: **Evidence Intelligence**
+- **Eₜ** = set of evidence units extracted from documents
+- **Kₜ** = resulting knowledge state
 
 ---
 
 ## Installation
 
 ```bash
-pip install claim-layer
+pip install claimlayer
 ```
 
 ---
 
-## Status
-
-**v0.3 — Stable core**
-
-- Deterministic truth computation
-- Canonical normalization
-- Contradiction handling
-- Explainable confidence
-
----
-
-## Quickstart
-
-No configuration. No API keys. Works in under 30 seconds.
+## Quickstart (30 seconds)
 
 ```python
 from claimlayer import ClaimLayer
@@ -279,38 +72,159 @@ cl = ClaimLayer()
 cl.ingest([
     "ACME payment terms are 30 days",
     "ACME payment terms are thirty days",
-    "ACME payment terms are 45 days",
+    "ACME payment terms are 45 days"
 ])
 
 result = cl.ask("What are the payment terms for ACME?")
 print(result)
 ```
 
-> **Note:** The default embedding is not semantic — it uses word-overlap hashing.
-> For production, pass a real embedding provider:
-> `ClaimLayer(embedding_provider=MyProvider())`.
+---
 
-See `examples/quickstart.py` for a runnable version.
+## What happens under the hood
+
+- `"30 days"` and `"thirty days"` are merged into a canonical value
+- `"45 days"` is detected as a contradiction
+- Confidence is penalized based on conflicting evidence
+- All outputs are traceable to their original sources
 
 ---
 
-## Usage
+## Embeddings (Important)
+
+ClaimLayer **does not depend on embeddings as a core mechanism**.
+
+Embeddings are:
+
+- Optional
+- Replaceable
+- Used only as a retrieval signal
+
+By default, ClaimLayer uses a **simple deterministic embedding** for zero-setup usage.
+
+> ⚠️ For production, provide your own embedding provider:
 
 ```python
-from claim_layer import ClaimLayerStore
-from claim_layer.api import ask
-
-store = ClaimLayerStore("./evidence.db")
-
-# Ingest documents
-store.ingest_document(payload)
-
-# Query
-response = ask(store, project_id="demo", query="payment terms", top_k=20)
+cl = ClaimLayer(embedding_provider=MyEmbeddingProvider())
 ```
 
 ---
 
-*If your system cannot explain why something is true, detect when it is wrong, or quantify uncertainty deterministically — then it does not compute truth. It generates text.*
+## Architecture
 
-*ClaimLayer is the missing layer between data and reasoning.*
+ClaimLayer is designed with strict separation of concerns:
+
+**Core (`claim_layer/`)**
+- Deterministic reasoning engine
+- Evidence modeling
+- Contradiction detection
+- Confidence computation (Noisy-OR)
+
+**Public API (`claimlayer/`)**
+- User-facing interface
+- Embedding provider integration
+
+This ensures:
+
+- Stability of the reasoning model
+- Replaceable infrastructure (LLMs, embeddings)
+- Full auditability
+
+---
+
+## Key Features
+
+- Evidence Units: `(claim, source, confidence, metadata)`
+- Source-level provenance (paragraph-level)
+- Explicit contradiction detection
+- Mathematical confidence aggregation
+- Deterministic reasoning (no hallucinations)
+- Snapshot-based knowledge state (Eₜ)
+
+---
+
+## Limitations (Current Version)
+
+- Retrieval operates at **claim-level granularity**
+- A claim may contain multiple facts not fully disentangled
+- Ingestion embedding uses a **temporary scoped override** (not concurrency-safe)
+
+Planned:
+
+- Fact-level indexing
+- Explicit dependency injection for ingestion
+- Distributed ingestion pipeline
+
+---
+
+## Philosophy
+
+> AI systems should not guess truth.
+> They should compute it.
+
+---
+
+## Positioning
+
+- RAG → retrieves text
+- LLMs → generate answers
+- ClaimLayer → constructs and reasons over evidence
+
+---
+
+## Use Cases
+
+- Legal due diligence (contract contradiction detection)
+- Healthcare / clinical protocol analysis
+- Financial compliance & audit trails
+- Any domain where decisions must be **defensible**
+
+---
+
+## Roadmap
+
+- Fact-level reasoning
+- Multi-document aggregation at scale
+- Evidence graph queries
+- Enterprise-grade ingestion pipelines
+
+---
+
+## Contributing
+
+We welcome contributions, but the core principles are strict:
+
+- Determinism over heuristics
+- Explicit evidence over implicit reasoning
+- Auditability over convenience
+
+---
+
+## License
+
+This project is licensed under the **Business Source License (BSL)**.
+
+- Free for non-production and evaluation use
+- Free for internal use within your organization
+- Commercial use in competing products is restricted
+
+After a defined period, the code may convert to an open-source license.
+
+For full terms, see the `LICENSE` file.
+
+**Why BSL?**
+
+ClaimLayer is not a typical library. It is the core of a new category: Evidence Intelligence.
+
+We believe in open access to the technology, but we also need to protect the integrity of the system and prevent extractive reuse by large platforms.
+
+If you are interested in commercial licensing or partnerships, please contact us.
+
+---
+
+## Final Note
+
+This is not a better RAG system.
+This is a different layer.
+
+**Evidence Intelligence starts here.**
