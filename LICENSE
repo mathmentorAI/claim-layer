@@ -2,11 +2,10 @@ Business Source License 1.1
 
 Licensor:             Francisco Jesús Hernández de Blas
 Licensed Work:        ClaimLayer
-Additional Use Grant: You may use this software for non-production purposes, internal
-                      business use, and evaluation. You may not use this software in
-                      any production environment without a commercial license. You may
-                      not use this software to provide a commercial product or service
-                      that competes with the Licensor.
+Additional Use Grant: Internal use, evaluation, and non-production environments.
+                      Production use requires an explicit commercial license granted
+                      by Francisco Jesús Hernández de Blas (or entities authorized
+                      by him). Competing with the Licensor is prohibited.
 Change Date:          2030-03-31
 Change License:       Apache License, Version 2.0
 
