@@ -8,7 +8,7 @@ version = "0.3.0"
 description = "Compute truth from evidence, not text"
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "Proprietary"}
+license = {text = "BSL-1.1"}
 authors = [
   {name = "Deltoryx"}
 ]

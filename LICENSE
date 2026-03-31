@@ -1,0 +1,77 @@
+Business Source License 1.1
+
+Licensor:             Francisco Jesús Hernández de Blas (Deltoryx)
+Licensed Work:        ClaimLayer
+Additional Use Grant: You may use this software for non-production purposes, internal
+                      business use, and evaluation. You may not use this software in
+                      any production environment without a commercial license. You may
+                      not use this software to provide a commercial product or service
+                      that competes with the Licensor.
+Change Date:          2029-01-01
+Change License:       Apache License, Version 2.0
+
+---
+
+### Terms
+
+The Licensor hereby grants you the right to copy, modify, create derivative works,
+redistribute, and make non-production use of the Licensed Work, subject to the
+following conditions:
+
+1. **Usage Restrictions**
+   You may not use the Licensed Work, or any derivative of it, in any production
+   environment without a commercial license. You may not use the Licensed Work to
+   provide a commercial product or service that competes with the Licensor's offerings.
+
+2. **Internal Use**
+   You may use the Licensed Work within your organization for internal purposes,
+   including development, testing, and evaluation.
+
+3. **Non-Production Use**
+   You may use the Licensed Work for research, experimentation, and non-commercial
+   applications.
+
+4. **Distribution**
+   You may distribute the Licensed Work or derivatives, provided that this License is
+   included and no additional restrictions are imposed.
+
+5. **No Trademark Rights**
+   This License does not grant any rights to use the Licensor's trademarks, brand,
+   or logos.
+
+---
+
+### Change Date
+
+On the Change Date specified above (2029-01-01), this License will automatically
+convert to the Change License (Apache License, Version 2.0), and the Licensed Work
+will thereafter be governed by that license.
+
+---
+
+### Disclaimer
+
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+---
+
+### Limitation of Liability
+
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY
+ARISING FROM THE USE OF THE LICENSED WORK.
+
+---
+
+### Definitions
+
+- **Licensed Work**: The software and associated materials provided under this License.
+- **Licensor**: Francisco Jesús Hernández de Blas (Deltoryx).
+- **You**: The individual or entity exercising permissions under this License.
+- **Change Date**: The date on which this License converts to the Change License (2029-01-01).
+- **Change License**: The license that will apply after the Change Date (Apache License, Version 2.0).
+
+---
+
+For full details on the Business Source License, see: https://mariadb.com/bsl11/
