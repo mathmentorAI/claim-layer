@@ -570,21 +570,26 @@ class ClaimLayerStore:
         with self._conn() as conn:
             rows = conn.execute(
                 """
-                SELECT
-                    COALESCE(canonical.name, e.name) AS entity_name,
-                    f.fact_type,
-                    GROUP_CONCAT(DISTINCT f.value) AS distinct_values,
-                    COUNT(DISTINCT LOWER(f.value)) AS value_count
-                FROM facts f
-                JOIN entities e ON e.id = f.entity_id
-                JOIN claims c ON c.id = f.claim_id
-                JOIN documents d ON d.id = c.document_id
-                LEFT JOIN entity_aliases ea ON ea.alias_entity_id = e.id
-                LEFT JOIN entities canonical ON canonical.id = ea.canonical_entity_id
-                WHERE d.project_id = ?
-                GROUP BY COALESCE(ea.canonical_entity_id, e.id), f.fact_type
-                HAVING COUNT(DISTINCT LOWER(f.value)) > 1
-                ORDER BY entity_name, f.fact_type
+                SELECT entity_name, fact_type,
+                       GROUP_CONCAT(value, '|||') AS distinct_values,
+                       COUNT(*) AS value_count
+                FROM (
+                    SELECT DISTINCT
+                        COALESCE(canonical.name, e.name) AS entity_name,
+                        f.fact_type,
+                        f.value,
+                        COALESCE(ea.canonical_entity_id, e.id) AS group_id
+                    FROM facts f
+                    JOIN entities e ON e.id = f.entity_id
+                    JOIN claims c ON c.id = f.claim_id
+                    JOIN documents d ON d.id = c.document_id
+                    LEFT JOIN entity_aliases ea ON ea.alias_entity_id = e.id
+                    LEFT JOIN entities canonical ON canonical.id = ea.canonical_entity_id
+                    WHERE d.project_id = ?
+                )
+                GROUP BY entity_name, fact_type
+                HAVING COUNT(*) > 1
+                ORDER BY entity_name, fact_type
                 """,
                 (project_id,),
             ).fetchall()
