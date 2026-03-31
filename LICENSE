@@ -1,13 +1,13 @@
 Business Source License 1.1
 
-Licensor:             Francisco Jesús Hernández de Blas (Deltoryx)
+Licensor:             Francisco Jesús Hernández de Blas
 Licensed Work:        ClaimLayer
 Additional Use Grant: You may use this software for non-production purposes, internal
                       business use, and evaluation. You may not use this software in
                       any production environment without a commercial license. You may
                       not use this software to provide a commercial product or service
                       that competes with the Licensor.
-Change Date:          2029-01-01
+Change Date:          2030-03-31
 Change License:       Apache License, Version 2.0
 
 ---
@@ -43,7 +43,7 @@ following conditions:
 
 ### Change Date
 
-On the Change Date specified above (2029-01-01), this License will automatically
+On the Change Date specified above (2030-03-31), this License will automatically
 convert to the Change License (Apache License, Version 2.0), and the Licensed Work
 will thereafter be governed by that license.
 
@@ -67,9 +67,9 @@ ARISING FROM THE USE OF THE LICENSED WORK.
 ### Definitions
 
 - **Licensed Work**: The software and associated materials provided under this License.
-- **Licensor**: Francisco Jesús Hernández de Blas (Deltoryx).
+- **Licensor**: Francisco Jesús Hernández de Blas.
 - **You**: The individual or entity exercising permissions under this License.
-- **Change Date**: The date on which this License converts to the Change License (2029-01-01).
+- **Change Date**: The date on which this License converts to the Change License (2030-03-31).
 - **Change License**: The license that will apply after the Change Date (Apache License, Version 2.0).
 
 ---
