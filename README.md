@@ -1,5 +1,7 @@
 # ClaimLayer
 
+[![DOI](https://zenodo.org/badge/1192448844.svg)](https://doi.org/10.5281/zenodo.19489455)
+
 **Deterministic truth engine for reasoning over unstructured data.**
 
 ClaimLayer is the open-source implementation of the **Evidence Intelligence** paradigm:
@@ -202,15 +204,15 @@ We welcome contributions, but the core principles are strict:
 
 ## License
 
-This project is licensed under the **Business Source License (BSL)**.
+This project is licensed under the **Business Source License 1.1 (BSL 1.1)**.
 
-- Free for non-production and evaluation use
-- Free for internal use within your organization
-- Commercial use in competing products is restricted
+- Free for non-production, testing, and evaluation use (local development, PoC, academic research)
+- Any use in a Production Environment (including internal use for real business operations) requires an explicit commercial license
+- Building competing products in Evidence Intelligence, AI verification, or RAG auditing is strictly prohibited
 
-After a defined period, the code may convert to an open-source license.
+On **2030-03-31**, the license automatically converts to **MPL 2.0** (Mozilla Public License 2.0).
 
-For full terms, see the `LICENSE` file.
+For full terms, see the [`LICENSE`](LICENSE) file.
 
 **Why BSL?**
 
