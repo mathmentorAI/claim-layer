@@ -1,152 +1,94 @@
-# Empirical A/B Evaluation: Google Research `Harness²` vs. `Harness² + ClaimLayer v2.0` on Harvey Legal Agent Benchmark (LAB)
+# Exploratory Legal Agent Evaluation: Base `LAB/OpenCode` vs. `ClaimLayer / Deltoryx` Augmented Workflow on Harvey Legal Agent Benchmark (LAB)
 
 **Date:** October 19, 2026  
-**Author:** Antigravity (Google DeepMind) in collaboration with the Deltoryx / ClaimLayer Platform Team  
-**ClaimLayer Version Evaluated:** `v2.0` — Commit `d70bf3f` (`feat(v2.0): unify ClaimLayer & Deltoryx Core across Sprints 1-9 (Evidence Intelligence v2.0)`)  
-**Benchmark Suite:** [`google-research/harness2`](https://github.com/google-research/harness2) (arXiv:2610.14224) + [`harveyai/harvey-labs`](https://github.com/harveyai/harvey-labs) (commit `b58a28a`, 1,143 professional legal tasks)  
-**Agent Substrate:** `OpenCode` (`v1.14.18`, commit `23fb5e0516c9...`, `tool_mode="base"`, `skill_mode="native"`)  
+**Authors:** Francisco Jesús Hernández de Blas & Deltoryx / ClaimLayer Team  
+**Platform Checkout Inspected:** Commit `d70bf3ffb19205984e6b4667aa3ad80b0e5831f8`  
+**Benchmark & Harness Context:** [`harveyai/harvey-labs`](https://github.com/harveyai/harvey-labs) (`b58a28a`) and [`google-research/harness2`](https://github.com/google-research/harness2) (`arXiv:2610.14224`)  
+**Agent Substrate:** `OpenCode` (`v1.14.18`, `tool_mode="base"`, `skill_mode="native"`)  
 **Solver Model:** `openai/gpt-4.1`  
-**Official Evaluator:** `harvey-labs/evaluation/run_eval.py` (`temperature=0.0`, strict schema JSON validation per rubric criterion)  
-**Scope:** 4 representative legal practice areas, 20 source commercial documents (`.docx`, `.xlsx`, `.eml`), 199 official binary rubric evaluation criteria  
+**Evaluators (Paired Within Each Task):** `harvey-labs/evaluation/run_eval.py` using `openai/gpt-4.1` (Litigation, Banking) and `nvidia/nemotron-3-super-120b-a12b` (Structured Finance, Corporate M&A)  
+**Scope:** 4 selected multi-document legal tasks, 20 source documents, 199 rubric evaluation criteria  
 
 ---
 
-## 1. Context and Research Question
+## 1. Study Design and Boundaries
 
-### 1.1 The Release of `google-research/harness2`
-In October 2026, Google Research released the open-source codebase and preprint for **`Harness²`** (*Harness²: Optimizing Agent Harnesses via Experience-Guided Composition and Selection*, arXiv:2610.14224). The paper addresses a foundational bottleneck in autonomous agent engineering: while the foundation model and environment tools are typically fixed, the **harness** (the surrounding prompts, guardrails, long-term memory, auxiliary scripts, and modular skills) is traditionally designed manually and suboptimally.
+This report summarizes the artifact-based reassessment of an exploratory integration comparing a base `LAB/OpenCode` agent against an augmented workflow incorporating a **ClaimLayer / Deltoryx** component tree (`c1`–`c8`: system prompts, guardrails, memory, tool guidance, `c5: skills/evidence_intelligence/SKILL.md`, and `c7: scripts/deltoryx_audit.py`).
 
-`Harness²` automates harness optimization through two primary mechanisms:
-1. **Experience-Guided Composition:** Decomposes the harness into an 8-component tree (`c1: systemprompt.md`, `c2: guardrails.md`, `c3: LongTermMEMORY.md`, `c4: tool_descriptions/`, `c5: skills/`, `c6: sub_agents/`, `c7: scripts/`, `c8: plugin/`) and optimizes these components by learning iteratively from failures observed during training rollouts.
-2. **Experience-Guided Selection ($k > 1$):** Executes $k$ parallel or sequential rollouts and employs a learned discriminator to select the optimal final deliverable.
-
-On the **Harvey Legal Agent Benchmark (LAB)**—a rigorous legal reasoning benchmark evaluating professional workflows over corporate M&A, litigation, finance, and regulatory records—`Harness²` reported substantial improvements in Table 2:
-- **Gemini 3.5 Flash:** from `79.9%` (Base Harness) to `81.9%` ($k=1$) and `84.5%` ($k=5$).
-- **GLM-5:** from `59.6%` (Base Harness) to `71.4%` ($k=1$) and `78.1%` ($k=5$).
-
-### 1.2 The Research Question: Can ClaimLayer Deterministically Enhance `Harness²`?
-In commit `d70bf3f`, the **ClaimLayer** / Deltoryx architecture consolidated the **Evidence Intelligence v2.0** paradigm:
-- **`ClaimLayer` Ingestion & Dependency Graph:** Atomic claim ingestion and formal proposition graph (`core.graph_traverser.DependencyGraph`).
-- **`OriginTier` Authority Hierarchy:** Explicit epistemic distinction between governing agreements (`PRIMARY_DOCUMENT`, Rank 100), subordinate schedules / disputed markups (`SECONDARY_ANNEX`, Rank 50), and informal communications / emails (`EXTERNAL_INJECTED`, Rank 10).
-- **Jøsang’s Subjective Logic:** Decomposing scalar probability into a Dirichlet-based opinion triplet $\omega = (b, d, u)$ (belief, disbelief, uncertainty).
-- **Truth Maintenance (JTMS) & Allen’s Temporal Interval Algebra:** Non-monotonic belief revision and contractual accrual interval tracking.
-- **Strict Unit Isolation:** An `AggregationEngine` preventing cross-currency, multiplier, and percentage blending.
-- **Merkle SHA-256 Cryptographic Audit Certificates (`DELTORYX-MERKLE-SHA256-v2`):** Cryptographic verification sealing deliverable claims against underlying case evidence.
-
-**Working Hypothesis:**  
-In `Harness²`, most optimizations discovered by the generator are **natural language prose directives** (e.g., *"reconcile names, dates, amounts, defined terms, and cross-document conflicts with a recorded source hierarchy"*). If we provide ClaimLayer v2.0 not merely as prose guidelines, but as a **deterministic executable tool** (`c7: scripts/deltoryx_audit.py` and `c5: skills/evidence_intelligence/SKILL.md`), the agent gains access to formal evidence algebra in Turn 1, eliminating non-monotonic hallucinations, oversights, and packaging failures.
+### 1.1 Experimental Configuration
+- **Solver & Execution Limits:** Both arms use `openai/gpt-4.1` with `tool_mode="base"`, `skill_mode="native"`, 80 maximum turns, one continuation, and a default 900-second timeout.
+- **Prompt & Workflow Differences:** Saved metrics record `2,333` always-on prompt characters for the base arm and `9,456` for the augmented arm, along with differing `opencode_only` flags. The augmented workflow combines document-to-text mirrors, a local SQLite claim store, source-tier labels, clause-difference tables, instructions to index and verify, and a deliverable container check.
+- **Evaluation Scope:** Four tasks were selected as a convenience sample covering litigation, structured finance, corporate M&A, and banking (`34`, `37`, `62`, and `66` rubric criteria respectively; `199` correlated criteria across 4 cases). This is an author-run exploratory study using the LAB evaluator, not an evaluation or endorsement by the benchmark or `Harness²` authors, nor a reproduction of `Harness²` recursive optimization.
 
 ---
 
-## 2. Experimental Methodology and Setup
+## 2. Paired Results After Document-Container Repair
 
-### 2.1 Controlled A/B Environment
-To ensure strict scientific validity, an identically paired A/B evaluation was deployed:
-- **Identical Solver Model:** `openai/gpt-4.1` running via `OpenCode` (`v1.14.18`).
-- **Identical Tool Budget:** `tool_mode="base"` (native shell, file read, and edit tools; no external internet search).
-- **Identical Evaluation Judge & Temperature:** Official `harvey-labs/evaluation/run_eval.py` running at `temperature=0.0`, validating official binary pass/fail criteria.
-- **Zero Information Leakage:** No rubric criteria were visible or injected into the agent context; grading occurred strictly post-hoc in a zero-shot, blinded environment.
+Table 1 reports the recalculated descriptive results from paired saved `scores.json` evaluations where **both arms within each task share the same judge** after document-container repair. We report **criterion pass rate** (not factual accuracy or complete-task pass rate; under the evaluator's all-criteria rule, complete-task success is `0/4` in both arms).
 
-### 2.2 Evaluated Configurations
-1. **Arm A — Baseline (`Harness²` Base, No ClaimLayer):**  
-   The standard base harness supplied by Google Research in `google-research/harness2` (`base_harness()`), providing general legal prompt guidance.
-2. **Arm B — `Harness² + ClaimLayer v2.0`:**  
-   The 8-component `Harness²` tree augmented with the deterministic ClaimLayer v2.0 suite:
-   - **`scripts/deltoryx_audit.py`**: A deterministic CLI with two operational modes:
-     - `index`: Parses all case files (`.docx`, `.xlsx`, `.pdf`, `.eml`), classifies source authority via `OriginTier`, stores atomic claims in `.deltoryx/claims.sqlite`, computes Jøsang opinions $(b, d, u)$, and generates a **Deterministic Clause-by-Clause Redline Diff** between base agreements and counterparty markups.
-     - `verify`: Audits deliverable files in `output/`, verifies section coverage and quantitative deltas, and generates the `DELTORYX-MERKLE-SHA256-v2` cryptographic audit trail.
-   - **`skills/evidence_intelligence/SKILL.md`**: Modular skill protocol enforcing epistemic governance.
-   - **`guardrails.md`, `LongTermMEMORY.md`, `tool_descriptions/tool_guidance.md`**: Guardrails compelling the agent to index in Turn 1 and audit prior to final submission.
+### 2.1 Paired Task-Level Breakdown
 
-### 2.3 Evaluation Benchmark Suite: 4 Multi-Document Tasks (199 Criteria)
-Four representative tasks covering diverse corporate, financial, and dispute domains were selected from Harvey LAB:
-1. **Litigation & Dispute Resolution:** `analyze-counterparty-motion-to-dismiss` (6 documents, 34 rubric criteria).
-2. **Structured Finance & Securitization:** `compare-offering-memorandum-against-indenture` (3 documents, 37 rubric criteria).
-3. **Corporate M&A:** `analyze-counterparty-spa-markup` (6 documents, 62 rubric criteria).
-4. **Banking & Finance:** `analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet` (5 documents, 66 rubric criteria).
+| Task (`practice-area / slug`) | Docs | Criteria | Base Passed | Augmented Passed | Difference (pp) | Criterion Transitions (Gain / Loss) | Judge |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`litigation-dispute-resolution`**<br>`analyze-counterparty-motion-to-dismiss` | 6 | 34 | `1 / 34` (`2.94%`) | **`19 / 34` (`55.88%`)** | **`+52.94`** | `+18 / -0` | `openai/gpt-4.1` |
+| **`structured-finance-securitization`**<br>`compare-offering-memorandum-against-indenture` | 3 | 37 | `3 / 37` (`8.11%`) | **`12 / 37` (`32.43%`)** | **`+24.32`** | `+10 / -1` | `nvidia/nemotron-3-super-120b-a12b` |
+| **`corporate-ma`**<br>`analyze-counterparty-spa-markup` | 6 | 62 | `15 / 62` (`24.19%`) | **`24 / 62` (`38.71%`)** | **`+14.52`** | `+12 / -3` | `nvidia/nemotron-3-super-120b-a12b` |
+| **`banking-finance`**<br>`analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet` | 5 | 66 | `43 / 66` (`65.15%`) | **`44 / 66` (`66.67%`)** | **`+1.52`** | `+13 / -12` | `openai/gpt-4.1` |
+| **Total (Pooled)** | **20** | **199** | **`62 / 199` (`31.16%`)** | **`99 / 199` (`49.75%`)** | **`+18.59`** | **`+53 / -16`** | **Mixed (Matched per task)** |
 
-**Total Testbed:** **20 complex legal documents**, **199 official binary evaluation criteria**.
+### 2.2 Summary Metrics
+
+| Measure | Base Arm | Augmented Arm | Difference / Ratio |
+| :--- | :---: | :---: | :---: |
+| **Pooled Criteria Passed** | `62 / 199` (`31.16%`) | `99 / 199` (`49.75%`) | **`+37` criteria (`+18.59 pp`, `1.60x`)** |
+| **Unweighted Mean of Task Pass Rates** | `25.10%` | `48.42%` | **`+23.32 pp`** |
+| **Criterion-Level Gains / Losses** | — | `+53` gained / `-16` lost | Net `+37` criteria |
+| **Oracle Criterion Union (Post-hoc across both arms)** | — | `115 / 199` (`57.79%`) | Banking union: `56 / 66` (`84.85%`) |
+| **Oracle Whole-Deliverable Selector (1 response/task)** | — | `99 / 199` (`49.75%`) | Selects augmented arm on all 4 tasks |
+| **Recorded Solver Tokens** | `220,320` | `388,406` | **`+168,086` tokens (`+76.3%`)** |
+| **Logged Solver Cost (Historical USD, excl. judge)** | `USD 1.8000` | `USD 2.4705` | **`+USD 0.6705` (`+37.3%`)** |
 
 ---
 
-## 3. Global Results and Quantitative Comparison
+## 3. Methodological Notes: Artifact Repair, Judge Sensitivity, and Oracle Union
 
-### 3.1 Aggregate Summary
+### 3.1 Why Earlier Unpaired "Strict" Aggregates (`47/199` vs. `106/199`) Were Replaced
+An earlier draft reported `47/199` (`23.62%`) versus `106/199` (`53.27%`). Reassessment of the saved evaluation files identified three reasons why that aggregate is not retained as a primary controlled comparison:
+1. **Pre-Repair Container Failures in Corporate M&A:** Saved pre-repair files show `0/62` for *both* corporate M&A arms before container repair (when raw Markdown was written to `.docx` filenames, causing `pandoc` ZIP unpacking to fail), not only for the base arm.
+2. **Judge Differences on Repaired M&A:** After container repair, the augmented M&A deliverable scored `31/62` under `openai/gpt-4.1` and `24/62` under `nvidia/nemotron-3-super-120b-a12b`, while the repaired base deliverable was scored under Nemotron (`15/62`).
+3. **Structured Finance Readability Stage:** An earlier `openai/gpt-4.1` evaluation on structured finance scored `0/37` due to an artifact read failure, whereas the later Nemotron evaluation scored `12/37` (vs. `3/37` for the base arm under Nemotron).
 
-| Aggregate Metric (4 Tasks, 199 Criteria) | Baseline (`Harness²` Base, Without ClaimLayer) | `Harness² + ClaimLayer v2.0` ($k=1$) | `Harness² + ClaimLayer v2.0` ($k=2$ Selection Pool) | Net Gain ($k=1$ vs. Baseline) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Criteria Passed (Strict LAB Evaluation)** | **47 / 199 (`23.62%`)** | **106 / 199 (`53.27%`)** | **122 / 199 (`61.31%`)** | **+29.65 pp (`2.26x`)** |
-| **Criteria Passed (Normalized Baseline Container)** | **62 / 199 (`31.16%`)** | **99 / 199 (`49.75%`)** | **115 / 199 (`57.79%`)** | **+18.59 pp (`1.60x`)** |
-| **Macro-Average Accuracy per Task (Strict LAB)** | **`19.05%`** | **`51.25%`** | **`59.17%`** | **+32.20 pp** |
-| **Macro-Average Accuracy (Normalized Container)** | **`25.10%`** | **`48.42%`** | **`55.98%`** | **+23.32 pp** |
-| **Net New Criteria Won by ClaimLayer v2.0** | — | **+53 criteria** | **+69 criteria** | — |
-| **Cryptographic Audit Certificate (`DELTORYX-MERKLE-SHA256-v2`)** | `0 / 4` (`0%`) | **`4 / 4` (`100%`)** | **`4 / 4` (`100%`)** | **+100%** |
+The `106/199` aggregate combined the `31/62` GPT-4.1 M&A score with the later structured-finance score while retaining the `0/62` un-repaired base M&A score (`47/199`). Table 1 above instead enforces **matching judges within each task** and evaluates both repaired M&A containers (`15/62` vs. `24/62` under Nemotron), yielding `62/199` (`31.16%`) versus `99/199` (`49.75%`).
 
----
-
-### 3.2 Breakdown by Practice Area
-
-| Scenario (`practice-area/task`) | Docs | Criteria | Without ClaimLayer (Strict) | Without ClaimLayer (Normalized) | **With ClaimLayer v2.0 ($k=1$)** | **With ClaimLayer v2.0 ($k=2$ Pool)** | Gain ($k=1$) | Merkle Certificate |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`litigation-dispute-resolution`**<br>`analyze-counterparty-motion-to-dismiss` | 6 | 34 | `1 / 34` (`2.94%`) | `1 / 34` (`2.94%`) | **`19 / 34` (`55.88%`)** | **`19 / 34` (`55.88%`)** | **+52.94 pp** (+18 crit.) | `VERIFIED` |
-| **`structured-finance-securitization`**<br>`compare-offering-memorandum-against-indenture` | 3 | 37 | `3 / 37` (`8.11%`) | `3 / 37` (`8.11%`) | **`12 / 37` (`32.43%`)** | **`13 / 37` (`35.14%`)** | **+24.32 pp** (+9 crit.) | `VERIFIED` |
-| **`corporate-ma`**<br>`analyze-counterparty-spa-markup` | 6 | 62 | `0 / 62` (`0.00%`)* | `15 / 62` (`24.19%`) | **`24 / 62` (`38.71%`)** | **`27 / 62` (`43.55%`)** | **+14.52 pp** (+9 crit.) | `VERIFIED` |
-| **`banking-finance`**<br>`analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet` | 5 | 66 | `43 / 66` (`65.15%`) | `43 / 66` (`65.15%`) | **`44 / 66` (`66.67%`)** | **`56 / 66` (`84.85%`)** | **+1.52 pp** ($k=1$)<br>**+19.70 pp** ($k=2$) | `VERIFIED` |
-
-*\*Technical Transparency Note:* In `corporate-ma`, the baseline agent wrote raw Markdown text directly to `output/markup-deviation-report.docx`, causing the official evaluator's `pandoc` call to fail on ZIP container unpacking and assign `0/62`. ClaimLayer v2.0 incorporates automated binary header validation (`PK\x03\x04`) in `deltoryx_audit.py verify`. To fairly measure legal content quality regardless of file packaging, we normalized the baseline's container: even under this neutral comparison, **ClaimLayer v2.0 outperformed the baseline by +60% relative (`38.71%` vs. `24.19%`)**.
+### 3.2 Oracle Criterion Union vs. Realizable $k=2$ Selection
+Across the Table 1 evaluations, the post-hoc union of criteria passed by either the base arm or the augmented arm is **`115 / 199` (`57.79%`)**, and **`56 / 66` (`84.85%`)** in *Banking & Finance*.
+- **Why this is not a $k=2$ selector score:** This union uses ground-truth rubric verdicts to count any criterion passed in either output. A realizable selector that chooses one complete deliverable per task cannot combine mutually exclusive per-criterion advantages from two separate documents. Even an oracle whole-response selector would pick the augmented deliverable in all four tasks and remain at **`99 / 199` (`49.75%`)** (`44 / 66` in Banking).
+- **Implication for Agent Harnesses:** The `+53` gains and `-16` losses (`+13 / -12` in Banking) demonstrate substantial criterion-level complementarity between a playbook-focused pass and a full-text diff pass, motivating **rubric-blind candidate synthesis/merging** rather than winner-take-all rollout selection.
+- **No Direct Comparison to Published `Harness²` Table 2:** Published `Harness²` scores (e.g., `81.9%` at $k=1$ and `84.5%` at $k=5$ with Gemini 3.5 Flash) use different foundation models, task subsets, and recursive training/selection protocols, and should not be directly equated with the single-task Banking oracle union.
 
 ---
 
-## 4. Forensic Analysis: Why ClaimLayer Makes the Difference
+## 4. Qualitative Observations and Limits of Attribution
 
-A criterion-level audit reveals the exact mathematical drivers behind ClaimLayer’s performance gains:
+### 4.1 Qualitative Task Patterns
+- **Litigation (`1/34` $\rightarrow$ `19/34`, `+18 / -0`):** Pre-indexing plain-text mirrors of the 6 court filings allowed the solver to complete the opposition brief within the turn budget and address FRCP Rule 9(b) particularity, forum-selection scope, and accrual timing criteria.
+- **Structured Finance (`3/37` $\rightarrow$ `12/37`, `+10 / -1`):** Document indexing and hierarchy prompts helped surface discrepancies between the Indenture and the Offering Memorandum (such as Reserve Account replenishment priority and Class C Note coupon differences).
+- **Corporate M&A (`15/62` $\rightarrow$ `24/62`, `+12 / -3`):** Extracting tabular schedules alongside SPA text helped connect working-capital collar modifications to the balance sheet figures in `dataforge-financial-summary.xlsx`.
+- **Banking & Finance (`43/66` $\rightarrow$ `44/66`, `+13 / -12`):** Full-text markup diffing recovered 13 criteria where the negotiation playbook was silent (such as deleted maturity extension options), but lost 12 criteria passed by the base run, yielding a net gain of 1 criterion.
 
-### 4.1 Detecting Critical Amendments Where Playbooks Remain Silent (`banking-finance`)
-- **Baseline Failure:** The baseline agent relied exclusively on the table of contents of `negotiation-playbook.docx`. However, page 1 explicitly states that the Playbook **does not cover commitment fees or extension options**. Consequently, the baseline completely missed that the lender had deleted two 1-year maturity extension options (`C-010`, `C-011`) and failed to model the commitment fee accrual (`C-008`).
-- **ClaimLayer Solution:** `deltoryx_audit.py index` does not depend on playbook headings; it computes a deterministic alignment of the full base text against the counterparty markup. Furthermore, guardrails instruct the agent to identify playbook silences and cross-reference partner emails and spreadsheet schedules.
-- **Outcome:** ClaimLayer won **13 net new criteria** missed by the baseline. In a $k=2$ selection pool, the combined score reached **`56 / 66` (`84.85%`)**, matching and slightly exceeding Google Research’s published `84.5%` ($k=5$ rollouts) on LAB while consuming **60% less compute**.
-
-### 4.2 Formal Source Hierarchy via `OriginTier` (`structured-finance`)
-- **Baseline Failure (`3/37 = 8.11%`):** The baseline spent 27 iterative turns reading fragmented chunks, identifying only a trivial early-redemption (*clean-up call*) variance while missing the entire payment waterfall and coupon structure.
-- **ClaimLayer Solution (`12/37 = 32.43%`, 4x gain):** In Turn 1, `OriginTier` assigned strict governing authority: Indenture as `PRIMARY_DOCUMENT` (Rank 100), Offering Memorandum as `SECONDARY_ANNEX` (Rank 50), and associate emails as `EXTERNAL_INJECTED` (Rank 10).
-- **Key Wins:**
-  - `C-001` to `C-004`: Caught that the OM improperly elevated Reserve Account replenishment ahead of Class B and C principal distribution, identified the critical defect, and mandated alignment with the Indenture.
-  - `C-010` & `C-011`: Pinpointed the interest rate discrepancy on Class C Notes (`6.75%` in Indenture vs. `6.50%` in the OM summary, a `$125,000/year` variance).
-
-### 4.3 Quantitative Verification with Financial Models (`corporate-ma`)
-- **Baseline Failure:** The baseline ignored interactions between qualitative SPA clause modifications and the balance sheet in `dataforge-financial-summary.xlsx`.
-- **ClaimLayer Solution:** Extracted tabular data and computed that the seller's proposed `$500K` working capital collar represented `6.0%` of Target NWC, exceeding the Playbook’s `3.0%` (`$252K`) ceiling, whereas the original draft (`$200K = 2.4%`) remained strictly compliant (`C-010`, `C-011`, `C-012`).
-
-### 4.4 Epistemic Separation of Claims vs. Proven Facts (`litigation`)
-- **Baseline Failure (`1/34 = 2.94%`):** Overwhelmed by 6 lengthy court filings, the baseline failed to complete the opposition brief within its allotted turns.
-- **ClaimLayer Solution (`19/34 = 55.88%`, +52.94 pp):** Within 2 seconds, `deltoryx_audit.py index` extracted plain-text mirrors and built the atomic proposition graph. The agent immediately cited fraudulent inducement claims satisfying FRCP Rule 9(b) (`C-002`, `C-004`), proved that tort claims fell outside the forum selection clause (`C-007`), and identified distinct accrual dates that defeated the statute of limitations defense (`C-014`).
+### 4.2 Bundled Intervention and Implementation Boundaries
+1. **Bundled Intervention:** Because plain-text mirrors, clause-difference tables, longer system/skill prompts (`9,456` vs. `2,333` chars), increased solver token expenditure (`+76.3%`), and container checks were introduced together, the `+18.59 pp` improvement cannot be causally attributed to a single mechanism without component ablations and a parsing-matched baseline.
+2. **Differences Between the Inspected Audit Script and the Formal v2 Specification:**
+   - `benchmarks/deltoryx_lab/scripts/deltoryx_audit.py` assigns document authority via filename heuristics, extracts at most the first 80 paragraphs per document with page locators set to `1`, and assigns fixed confidence constants by source tier.
+   - Records are labelled `deductive` without executing the formal rule-and-premise proof checker specified in Section 6 of the paper, and opinion values use fixed constants rather than empirical calibration or dependence-aware scoring.
+   - The `verified=true` status in the 4 saved `DELTORYX-MERKLE-SHA256-v2` certificates represents a cryptographic self-check over recorded artifacts, not a proof of semantic accuracy or complete rubric satisfaction.
 
 ---
 
-## 5. Comparative Evaluation against Google Research Table 2 (`arXiv:2610.14224`)
+## 5. Repository Artifacts
 
-| System / Optimization Approach | Solver Model | Partial LAB Pass Rate | Gain over Base |
-| :--- | :--- | :---: | :---: |
-| Base Harness (Google Research) | Gemini 3.5 Flash (OpenCode) | `79.9%` | — |
-| ReasoningBank (Google Research) | Gemini 3.5 Flash (OpenCode) | `77.3%` | `-2.6 pp` |
-| Harness Scaling (Google Research) | Gemini 3.5 Flash (OpenCode) | `78.9%` | `-1.0 pp` |
-| Meta-Harness (Google Research) | Gemini 3.5 Flash (OpenCode) | `81.6%` | `+1.7 pp` |
-| **Harness² ($k=1$) (Google Research)** | Gemini 3.5 Flash (OpenCode) | **`81.9%`** | **`+2.0 pp`** |
-| **Harness² ($k=5$) (Google Research)** | Gemini 3.5 Flash (OpenCode) | **`84.5%`** | **`+4.6 pp`** |
-| Base Harness → **Harness² ($k=1$ / $k=5$)** | GLM-5 (OpenCode) | `59.6%` → **`71.4%` / `78.1%`** | **`+11.8 pp` / `+18.5 pp`** |
-| **Baseline Harvey LAB (Our Evaluation)** | GPT-4.1 (OpenCode) | `23.62%` (strict) / `31.16%` (normalized) | — |
-| **`Harness² + ClaimLayer v2.0` ($k=1$)** | GPT-4.1 (OpenCode) | **`53.27%` (strict) / `49.75%` (normalized)** | **+29.65 pp / +18.59 pp** |
-| **`Harness² + ClaimLayer v2.0` ($k=2$ Pool)** | GPT-4.1 (OpenCode) | **`61.31%` (strict) / `57.79%` (normalized)** | **+37.69 pp / +26.63 pp** |
-
-**Core Conclusion:**  
-While `Harness²` prompt/memory synthesis achieves gains between `+2.0 pp` and `+11.8 pp` at $k=1$, equipping the harness with **ClaimLayer as a deterministic evidence engine** multiplies agent accuracy by **1.6x to 2.26x (+18.59 pp to +29.65 pp)** at $k=1$, enabling a small $k=2$ selection pool to achieve **`84.85%`** on complex financial workflows—matching $k=5$ results with a 60% reduction in test-time compute.
-
----
-
-## 6. Reproducibility and Repository Artifacts
-
-All evaluation scripts, integration harnesses, and raw logs are fully open-source and reproducible:
 - **Component Tree:** [`benchmarks/deltoryx_lab/`](../benchmarks/deltoryx_lab/)
-- **Deterministic CLI Verifier:** [`benchmarks/deltoryx_lab/scripts/deltoryx_audit.py`](../benchmarks/deltoryx_lab/scripts/deltoryx_audit.py)
-- **Evidence Intelligence Skill Protocol:** [`benchmarks/deltoryx_lab/skills/evidence_intelligence/SKILL.md`](../benchmarks/deltoryx_lab/skills/evidence_intelligence/SKILL.md)
+- **CLI Indexing & Verification Script:** [`benchmarks/deltoryx_lab/scripts/deltoryx_audit.py`](../benchmarks/deltoryx_lab/scripts/deltoryx_audit.py)
+- **Skill Protocol:** [`benchmarks/deltoryx_lab/skills/evidence_intelligence/SKILL.md`](../benchmarks/deltoryx_lab/skills/evidence_intelligence/SKILL.md)
 - **A/B Benchmark Runner:** [`benchmarks/run_ab_benchmark.py`](../benchmarks/run_ab_benchmark.py)
+

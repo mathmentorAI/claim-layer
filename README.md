@@ -92,33 +92,30 @@ print(result)
 
 ---
 
-## 🏆 Empirical Validation: Harvey Legal Agent Benchmark (Google Research Harness²)
+## 📊 Exploratory Evaluation: Harvey Legal Agent Benchmark (LAB) Integration
 
-To empirically prove that deterministic epistemic grounding fundamentally outperforms probabilistic test-time search, ClaimLayer was evaluated on the **Harvey Legal Agent Benchmark (LAB)**—an official multi-document legal reasoning suite released with Google Research's [Harness²](https://github.com/google-research/harness2).
+We evaluated an augmented **ClaimLayer / Deltoryx** workflow integrated into the [`google-research/harness2`](https://github.com/google-research/harness2) / `OpenCode` (`v1.14.18`) component tree on four multi-document tasks from the **[Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs)** (`b58a28a`), comprising **20 source documents** and **199 official rubric criteria** with `openai/gpt-4.1` as the solver.
 
-The evaluation spans 4 practice areas (*Banking & Finance*, *Corporate*, *Employment*, and *Real Estate*), 20 real-world commercial contracts (40–150 pages), and 199 official rubric evaluation criteria scored by the strict `evaluation.run_eval` benchmark judge.
+### Paired Results (After Container Repair, Same Judge Within Each Task)
 
-### Benchmark Results
+| Task | Docs | Criteria | Base Agent Passed | Augmented Agent Passed | Difference (pp) | Criterion Transitions | Judge |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Litigation** (`analyze-counterparty-motion-to-dismiss`) | 6 | 34 | 1 (`2.94%`) | **19 (`55.88%`)** | **`+52.94`** | `+18 / -0` | GPT-4.1 |
+| **Structured Finance** (`compare-offering-memorandum-against-indenture`) | 3 | 37 | 3 (`8.11%`) | **12 (`32.43%`)** | **`+24.32`** | `+10 / -1` | Nemotron |
+| **Corporate M&A** (`analyze-counterparty-spa-markup`) | 6 | 62 | 15 (`24.19%`) | **24 (`38.71%`)** | **`+14.52`** | `+12 / -3` | Nemotron |
+| **Banking & Finance** (`analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet`) | 5 | 66 | 43 (`65.15%`) | **44 (`66.67%`)** | **`+1.52`** | `+13 / -12` | GPT-4.1 |
+| **Total (Pooled)** | **20** | **199** | **62 (`31.16%`)** | **99 (`49.75%`)** | **`+18.59`** | **`+53 / -16`** | Mixed (Paired) |
 
-| System Configuration | Strict LAB Score | % Rubric Passed | Banking & Finance | Relative Gain |
-| :--- | :---: | :---: | :---: | :---: |
-| **Harness² Baseline (Official Google Agent)** | 47 / 199 | **23.62%** | 33.33% | *Reference* |
-| **Harness² + ClaimLayer ($k=1$)** | 106 / 199 | **53.27%** | 68.18% | **+126% (+29.65 pp)** |
-| **Harness² + ClaimLayer ($k=2$)** | 122 / 199 | **61.31%** | **84.85%** | **+159% (+37.69 pp)** |
-| *Published Google Harness² ($k=5$)* | - | - | *84.50%* | *Reference ($5\times$ compute)* |
+> 💡 **Key Findings & Methodological Boundaries:**
+> - **Paired Criterion Gain (`+18.59 pp`):** Across the 199 criteria, the augmented workflow passes **99/199 (`49.75%`)** versus **62/199 (`31.16%`)** for the base agent (`1.60x` ratio; unweighted task-mean pass rate rises from `25.10%` to `48.42%`, `+23.32 pp`), gaining **53 criteria** and losing **16**.
+> - **Complementarity vs. Whole-Response Selection:** A post-hoc **oracle criterion union** across both arms reaches **115/199 (`57.79%`)** overall and **56/66 (`84.85%`)** in *Banking & Finance* (where the augmented arm gains 13 missed criteria and loses 12). Because a whole-deliverable selector cannot combine mutually exclusive per-criterion wins from two separate outputs, an oracle selector choosing one whole response per task is capped at **99/199 (`49.75%`)**. This motivates candidate synthesis/merging rather than winner-take-all selection.
+> - **Resource Trade-off:** Recorded solver token usage increases from **220,320** (base) to **388,406** (augmented, **+76.3%**; logged solver cost rises from `USD 1.8000` to `USD 2.4705`, **+37.3%**), reflecting additional prompt context (`9,456` vs. `2,333` always-on characters) and inspection steps.
+> - **Scope of Attribution:** The augmented arm is a bundled workflow combining document-to-text mirrors, clause-difference tables, source-authority tagging, a claim store, and deliverable verification. Because this is a four-task convenience sample with post-run `.docx` container repair (so Corporate M&A content could be evaluated in both arms) and heterogeneous judges across tasks (`openai/gpt-4.1` and `nvidia/nemotron-3-super-120b-a12b`), these observations support further investigation rather than a general claim of superiority over published `Harness²` configurations or causal attribution to individual mechanisms.
 
-> 💡 **Key Takeaway:** At $k=2$, ClaimLayer matches and outperforms Google's published $k=5$ score in Banking & Finance while requiring **over 60% less test-time inference compute** and eliminating non-monotonic contract hallucinations.
-
-### Why Standard RAG and GraphRAG Collapse Here
-
-A common misconception is that legal contract analysis is an open-domain "retrieval" problem. It is not:
-- **The Non-Monotonicity Trap:** When an amendment overrides a master agreement clause, semantic similarity (vector embeddings / GraphRAG) assigns nearly identical relevance scores to both the obsolete draft and the governing amendment. The LLM invariably confuses historical terms with active commitments.
-- **ClaimLayer's Deterministic Solution:** ClaimLayer enforces an explicit `OriginTier` source hierarchy and monotonic truth maintenance (JTMS). Amendments deterministically supersede prior clauses *before* reasoning occurs, guaranteeing legal defensibility without relying on brute-force multi-agent sampling.
-
-📄 **Full Benchmark Reports & Documentation:**
-- 📑 [Full Technical Report (PDF)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.pdf)
-- 📄 [Full Technical Report (Word)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.docx)
-- 📊 [Complete Benchmark Writeup (Markdown)](./docs/harvey_lab_benchmark.md)
+📄 **Benchmark Documentation & Replication:**
+- 📑 [Technical Benchmark Report (PDF)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.pdf)
+- 📄 [Technical Benchmark Report (Word)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.docx)
+- 📊 [Complete Benchmark Writeup & Audit Notes (Markdown)](./docs/harvey_lab_benchmark.md)
 - 💻 [Replication Runner Script](./benchmarks/run_ab_benchmark.py)
 
 ---
