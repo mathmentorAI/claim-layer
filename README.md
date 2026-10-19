@@ -123,6 +123,45 @@ A common misconception is that legal contract analysis is an open-domain "retrie
 
 ---
 
+## 🤖 Agent Integration: Evidence Intelligence Skill
+
+ClaimLayer v2.0 includes a production-grade agent skill located in [`skills/evidence-intelligence/`](./skills/evidence-intelligence/) designed to equip coding assistants and autonomous agents with deterministic evidence verification.
+
+### Supported Agent Frameworks
+You can install the skill by copying [`skills/evidence-intelligence`](./skills/evidence-intelligence) directly into your agent's skills directory:
+- **Claude Code:** `~/.claude/skills/evidence-intelligence`
+- **Gemini CLI / Antigravity:** `~/.gemini/config/skills/evidence-intelligence`
+- **Google Research Harness² / OpenCode:** Include in the harness component tree (`c5: skills/`)
+
+### Try the Offline Deterministic Demo (No API Key Required)
+You can test the complete 5-stage Evidence Intelligence pipeline immediately using the built-in deterministic demo:
+
+```bash
+# Clone the repository
+git clone https://github.com/mathmentorAI/claim-layer.git
+cd claim-layer
+
+# Run the full offline verification pipeline
+python skills/evidence-intelligence/examples/pipeline_completo.py --demo
+```
+
+This runs an end-to-end verification showing:
+1. **`ClaimConsolidator`**: Prunes layout noise and normalizes multilingual values (*"30 days"* vs *"trente jours"*).
+2. **`EpistemicJudge`**: Detects and blocks unverified party allegations and enforces monotonic truth closure.
+3. **`OriginTier`**: Deterministically resolves source precedence (Governing Agreement > Amendment > Emails).
+4. **`DependencyGraph`**: Executes 3-hop Dijkstra Max-Min inference over Gödel's T-Norm.
+5. **`AggregationEngine`**: Isolates currencies and units without scalar hallucinations.
+6. **Merkle SHA-256 Certificates**: Generates a tamper-proof cryptographic audit trail.
+
+### Running with a Live LLM (OpenAI / Gemini / Claude)
+```bash
+pip install openai
+export OPENAI_API_KEY="your-api-key"
+python skills/evidence-intelligence/examples/pipeline_completo.py
+```
+
+---
+
 ## Embeddings (Important)
 
 ClaimLayer **does not depend on embeddings as a core mechanism**.
