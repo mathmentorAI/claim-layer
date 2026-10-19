@@ -116,8 +116,8 @@ A common misconception is that legal contract analysis is an open-domain "retrie
 - **ClaimLayer's Deterministic Solution:** ClaimLayer enforces an explicit `OriginTier` source hierarchy and monotonic truth maintenance (JTMS). Amendments deterministically supersede prior clauses *before* reasoning occurs, guaranteeing legal defensibility without relying on brute-force multi-agent sampling.
 
 📄 **Full Benchmark Reports & Documentation:**
-- 📑 [Full Technical Report (PDF)](./docs/Informe_Experimento_Harvey_LAB_Deltoryx_v2.pdf)
-- 📄 [Full Technical Report (Word)](./docs/Informe_Experimento_Harvey_LAB_Deltoryx_v2.docx)
+- 📑 [Full Technical Report (PDF)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.pdf)
+- 📄 [Full Technical Report (Word)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.docx)
 - 📊 [Complete Benchmark Writeup (Markdown)](./docs/harvey_lab_benchmark.md)
 - 💻 [Replication Runner Script](./benchmarks/run_ab_benchmark.py)
 
