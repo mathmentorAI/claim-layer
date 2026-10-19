@@ -1,9 +1,11 @@
 from __future__ import annotations
+from typing import Optional
 
 import json
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
+from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
@@ -146,7 +148,7 @@ def _encode_embedding(vec: list[float]) -> str:
     return json.dumps(vec)
 
 
-def _decode_embedding(raw: str | None) -> list[float] | None:
+def _decode_embedding(raw: Optional[str]) -> list[float] | None:
     if raw is None:
         return None
     return json.loads(raw)
@@ -244,7 +246,7 @@ class ClaimLayerStore:
             ).fetchone()
             return int(row["id"])
 
-    def get_document_id(self, project_id: str, filename: str) -> int | None:
+    def get_document_id(self, project_id: str, filename: str) -> Optional[int]:
         with self._conn() as conn:
             row = conn.execute(
                 "SELECT id FROM documents WHERE project_id = ? AND filename = ?",
@@ -291,7 +293,7 @@ class ClaimLayerStore:
             ).fetchone()
             return int(row["id"])
 
-    def get_entities(self, project_id: str, entity_type: str | None = None) -> list[dict[str, Any]]:
+    def get_entities(self, project_id: str, entity_type: Optional[str] = None) -> list[dict[str, Any]]:
         with self._conn() as conn:
             if entity_type:
                 rows = conn.execute(
@@ -311,7 +313,7 @@ class ClaimLayerStore:
         canonical_entity_id: int,
         alias_entity_id: int,
         reviewer_note: str = "",
-    ) -> int | None:
+    ) -> Optional[int]:
         if canonical_entity_id == alias_entity_id:
             return None
         with self._conn() as conn:
@@ -425,9 +427,9 @@ class ClaimLayerStore:
         document_id: int,
         text: str,
         confidence: float = 0.0,
-        page: int | None = None,
-        paragraph_id: str | None = None,
-        external_id: str | None = None,
+        page: Optional[int] = None,
+        paragraph_id: Optional[str] = None,
+        external_id: Optional[str] = None,
         pipeline_version: str = "0.1.0",
     ) -> int:
         with self._conn() as conn:
@@ -474,7 +476,7 @@ class ClaimLayerStore:
             for row in rows
         ]
 
-    def get_claims(self, document_id: int | None = None, project_id: str | None = None) -> list[dict[str, Any]]:
+    def get_claims(self, document_id: Optional[int] = None, project_id: Optional[str] = None) -> list[dict[str, Any]]:
         with self._conn() as conn:
             if document_id is not None:
                 rows = conn.execute("SELECT * FROM claims WHERE document_id = ? ORDER BY id", (document_id,)).fetchall()
@@ -504,8 +506,8 @@ class ClaimLayerStore:
         self,
         fact_id: int,
         document_id: int,
-        page: int | None = None,
-        paragraph_id: str | None = None,
+        page: Optional[int] = None,
+        paragraph_id: Optional[str] = None,
         text: str = "",
     ) -> int:
         with self._conn() as conn:
@@ -521,69 +523,178 @@ class ClaimLayerStore:
 
     def ingest_document(self, document: IngestedDocument | dict[str, Any]) -> dict[str, int]:
         payload = document if isinstance(document, IngestedDocument) else IngestedDocument(**document)
-        doc_id = self.upsert_document(payload.project_id, payload.filename, payload.file_hash, payload.pipeline_version)
-        self.clear_document_evidence(doc_id)
 
-        entity_map: dict[str, int] = {}
-        for raw_entity in payload.entities:
-            entity = _as_entity(raw_entity)
-            if not entity.name:
-                continue
-            entity_map[entity.entity_id or entity.name] = self.upsert_entity_with_dedup(
-                payload.project_id,
-                entity.name,
-                entity.entity_type,
+        if payload.file_hash:
+            with self._conn() as conn:
+                existing_doc = conn.execute(
+                    "SELECT hash, pipeline_version FROM documents WHERE project_id = ? AND filename = ?",
+                    (payload.project_id, payload.filename),
+                ).fetchone()
+            if (
+                existing_doc is not None
+                and str(existing_doc["hash"] or "") == str(payload.file_hash)
+                and str(existing_doc["pipeline_version"] or "") == str(payload.pipeline_version or "")
+            ):
+                return {"documents": 0, "entities": 0, "claims": 0, "facts": 0}
+
+        def _upsert_entity_with_dedup_in_conn(
+            conn: sqlite3.Connection,
+            *,
+            project_id: str,
+            name: str,
+            entity_type: str,
+            existing_by_type: dict[str, list[dict[str, Any]]],
+            similarity_threshold: float = 0.85,
+        ) -> int:
+            conn.execute(
+                "INSERT OR IGNORE INTO entities (project_id, name, type) VALUES (?, ?, ?)",
+                (project_id, name, entity_type),
             )
+            row = conn.execute(
+                "SELECT id FROM entities WHERE project_id = ? AND name = ? COLLATE NOCASE AND type = ?",
+                (project_id, name, entity_type),
+            ).fetchone()
+            entity_id = int(row["id"])
 
-        claim_map: dict[str, int] = {}
-        for raw_claim in payload.claims:
-            claim = _as_claim(raw_claim)
-            if not claim.text:
-                continue
-            claim_db_id = self.insert_claim(
-                document_id=doc_id,
-                text=claim.text,
-                confidence=claim.confidence,
-                page=claim.page,
-                paragraph_id=claim.paragraph_id,
-                external_id=claim.claim_id or None,
-                pipeline_version=payload.pipeline_version,
+            candidates = existing_by_type.setdefault(entity_type, [])
+            best_match: dict[str, Any] | None = None
+            best_score = 0.0
+            for item in candidates:
+                if int(item["id"]) == entity_id:
+                    continue
+                score = self._similarity_score(name, str(item["name"]))
+                if score >= similarity_threshold and score > best_score:
+                    best_score = score
+                    best_match = item
+            if best_match:
+                if len(str(best_match["name"])) >= len(name):
+                    canonical_id, alias_id = int(best_match["id"]), entity_id
+                else:
+                    canonical_id, alias_id = entity_id, int(best_match["id"])
+                if canonical_id != alias_id:
+                    conn.execute(
+                        """
+                        INSERT OR IGNORE INTO entity_aliases
+                        (project_id, canonical_entity_id, alias_entity_id, reviewer_note)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        (project_id, canonical_id, alias_id, f"auto_dedup: score={best_score:.2f}"),
+                    )
+
+            if not any(int(item["id"]) == entity_id for item in candidates):
+                candidates.append({"id": entity_id, "name": name})
+            return entity_id
+
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO documents (project_id, filename, hash, pipeline_version)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(project_id, filename) DO UPDATE SET
+                    hash = excluded.hash,
+                    pipeline_version = excluded.pipeline_version
+                """,
+                (payload.project_id, payload.filename, payload.file_hash, payload.pipeline_version),
             )
-            claim_map[claim.claim_id or claim.text] = claim_db_id
+            doc_row = conn.execute(
+                "SELECT id FROM documents WHERE project_id = ? AND filename = ?",
+                (payload.project_id, payload.filename),
+            ).fetchone()
+            doc_id = int(doc_row["id"])
+            conn.execute("DELETE FROM claims WHERE document_id = ?", (doc_id,))
 
-            if self.enable_semantic:
-                from .semantic.embeddings import embed  # lazy — cached after first import
-                vec = claim.embedding if claim.embedding is not None else embed(claim.text)
-                if vec:
-                    self._update_claim_embedding(claim_db_id, vec)
+            existing_rows = conn.execute(
+                "SELECT id, name, type FROM entities WHERE project_id = ?",
+                (payload.project_id,),
+            ).fetchall()
+            existing_by_type: dict[str, list[dict[str, Any]]] = {}
+            for row in existing_rows:
+                existing_by_type.setdefault(str(row["type"]), []).append({"id": int(row["id"]), "name": str(row["name"])})
 
-        facts_inserted = 0
-        for raw_fact in payload.facts:
-            fact = _as_fact(raw_fact)
-            claim_id = claim_map.get(fact.claim_ref)
-            entity_id = entity_map.get(fact.entity_ref)
-            if claim_id is None or entity_id is None or not fact.value:
-                continue
-            fact_id = self.insert_fact(claim_id, entity_id, fact.fact_type, fact.value, verified=fact.verified)
-            facts_inserted += 1
-            for source in fact.sources:
-                self.insert_fact_source(
-                    fact_id=fact_id,
-                    document_id=doc_id,
-                    page=source.page,
-                    paragraph_id=source.paragraph_id,
-                    text=source.text[:500],
+            entity_map: dict[str, int] = {}
+            for raw_entity in payload.entities:
+                entity = _as_entity(raw_entity)
+                if not entity.name:
+                    continue
+                entity_map[entity.entity_id or entity.name] = _upsert_entity_with_dedup_in_conn(
+                    conn,
+                    project_id=payload.project_id,
+                    name=entity.name,
+                    entity_type=entity.entity_type,
+                    existing_by_type=existing_by_type,
                 )
+
+            claim_map: dict[str, int] = {}
+            for raw_claim in payload.claims:
+                claim = _as_claim(raw_claim)
+                if not claim.text:
+                    continue
+                cursor = conn.execute(
+                    """
+                    INSERT INTO claims (document_id, external_id, text, confidence, page, paragraph_id, pipeline_version)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        doc_id,
+                        claim.claim_id or None,
+                        claim.text,
+                        claim.confidence,
+                        claim.page,
+                        claim.paragraph_id,
+                        payload.pipeline_version,
+                    ),
+                )
+                claim_db_id = int(cursor.lastrowid)
+                claim_map[claim.claim_id or claim.text] = claim_db_id
+
+                if self.enable_semantic:
+                    from .semantic.embeddings import embed  # lazy — cached after first import
+                    vec = claim.embedding if claim.embedding is not None else embed(claim.text)
+                    if vec:
+                        conn.execute(
+                            "UPDATE claims SET embedding = ? WHERE id = ?",
+                            (_encode_embedding(vec), claim_db_id),
+                        )
+
+            facts_inserted = 0
+            for raw_fact in payload.facts:
+                fact = _as_fact(raw_fact)
+                claim_id = claim_map.get(fact.claim_ref)
+                entity_id = entity_map.get(fact.entity_ref)
+                if claim_id is None or entity_id is None or not fact.value:
+                    continue
+                cursor = conn.execute(
+                    "INSERT INTO facts (claim_id, entity_id, fact_type, value, verified) VALUES (?, ?, ?, ?, ?)",
+                    (claim_id, entity_id, fact.fact_type, fact.value, fact.verified),
+                )
+                fact_id = int(cursor.lastrowid)
+                facts_inserted += 1
+                if fact.sources:
+                    conn.executemany(
+                        "INSERT INTO fact_sources (fact_id, document_id, page, paragraph_id, text) VALUES (?, ?, ?, ?, ?)",
+                        [
+                            (
+                                fact_id,
+                                doc_id,
+                                source.page,
+                                source.paragraph_id,
+                                source.text[:500],
+                            )
+                            for source in fact.sources
+                        ],
+                    )
 
         self.capture_snapshot(payload.project_id, trigger_document=payload.filename, trigger_action="ingest")
         return {"documents": 1, "entities": len(entity_map), "claims": len(claim_map), "facts": facts_inserted}
 
     def get_facts(
         self,
-        project_id: str | None = None,
-        document_id: int | None = None,
-        entity_name: str | None = None,
-        fact_type: str | None = None,
+        project_id: Optional[str] = None,
+        document_id: Optional[int] = None,
+        entity_name: Optional[str] = None,
+        entity_id: Optional[int] = None,
+        fact_type: Optional[str] = None,
+        include_aliases: bool = False,
     ) -> list[dict[str, Any]]:
         with self._conn() as conn:
             conditions: list[str] = []
@@ -613,17 +724,85 @@ class ClaimLayerStore:
             if document_id is not None:
                 conditions.append("d.id = ?")
                 params.append(document_id)
-            if entity_name:
-                conditions.append("LOWER(e.name) = LOWER(?)")
-                params.append(entity_name)
             if fact_type:
                 conditions.append("f.fact_type = ?")
                 params.append(fact_type)
+
+            if entity_id is not None:
+                if include_aliases and project_id:
+                    group_ids = self.get_entity_group(project_id, entity_id)
+                    placeholders = ",".join("?" for _ in group_ids)
+                    conditions.append(f"f.entity_id IN ({placeholders})")
+                    params.extend(group_ids)
+                else:
+                    conditions.append("f.entity_id = ?")
+                    params.append(entity_id)
+            elif entity_name:
+                conditions.append("LOWER(e.name) = LOWER(?)")
+                params.append(entity_name)
+
             if conditions:
                 sql += " WHERE " + " AND ".join(conditions)
             sql += " ORDER BY f.id"
             rows = conn.execute(sql, params).fetchall()
             return [dict(row) for row in rows]
+
+    def get_project_summary(self, project_id: str) -> dict[str, Any]:
+        with self._conn() as conn:
+            facts_count = conn.execute(
+                "SELECT COUNT(*) AS cnt FROM facts f JOIN claims c ON c.id = f.claim_id JOIN documents d ON d.id = c.document_id WHERE d.project_id = ?",
+                (project_id,),
+            ).fetchone()["cnt"]
+            entities_count = conn.execute("SELECT COUNT(*) AS cnt FROM entities WHERE project_id = ?", (project_id,)).fetchone()["cnt"]
+            documents_count = conn.execute("SELECT COUNT(*) AS cnt FROM documents WHERE project_id = ?", (project_id,)).fetchone()["cnt"]
+            
+            contradictions = self.get_contradictions(project_id)
+            
+            return {
+                "project_id": project_id,
+                "facts_count": facts_count,
+                "entities_count": entities_count,
+                "documents_count": documents_count,
+                "contradictions_count": len(contradictions),
+                "last_updated": datetime.now().isoformat()
+            }
+
+    def get_lineage(self, fact_id: int) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            fact_row = conn.execute(
+                """
+                SELECT f.*, e.name AS entity_name, e.type AS entity_type
+                FROM facts f
+                JOIN entities e ON e.id = f.entity_id
+                WHERE f.id = ?
+                """,
+                (fact_id,),
+            ).fetchone()
+            if not fact_row:
+                return None
+            
+            fact = dict(fact_row)
+            claim_row = conn.execute(
+                "SELECT * FROM claims WHERE id = ?", (fact["claim_id"],)
+            ).fetchone()
+            claim = dict(claim_row) if claim_row else {}
+            
+            doc_row = conn.execute(
+                "SELECT * FROM documents WHERE id = ?", (claim.get("document_id"),)
+            ).fetchone() if claim.get("document_id") else None
+            document = dict(doc_row) if doc_row else {}
+            
+            source_rows = conn.execute(
+                "SELECT * FROM fact_sources WHERE fact_id = ?", (fact_id,)
+            ).fetchall()
+            sources = [dict(s) for s in source_rows]
+            
+            return {
+                "fact": fact,
+                "claim": claim,
+                "document": document,
+                "sources": sources
+            }
 
     def get_contradictions(self, project_id: str) -> list[dict[str, Any]]:
         with self._conn() as conn:
@@ -742,7 +921,7 @@ class ClaimLayerStore:
         result.sort(key=lambda item: item["coverage"])
         return result
 
-    def benchmark_facts(self, project_id: str, fact_type: str | None = None) -> list[dict[str, Any]]:
+    def benchmark_facts(self, project_id: str, fact_type: Optional[str] = None) -> list[dict[str, Any]]:
         with self._conn() as conn:
             conditions = ["d.project_id = ?"]
             params: list[Any] = [project_id]
@@ -1056,8 +1235,8 @@ class ClaimLayerStore:
     def get_evidence_units(
         self,
         project_id: str,
-        entity_name: str | None = None,
-        fact_type: str | None = None,
+        entity_name: Optional[str] = None,
+        fact_type: Optional[str] = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         with self._conn() as conn:
@@ -1267,8 +1446,8 @@ class ClaimLayerStore:
     def get_confidence_accumulation(
         self,
         project_id: str,
-        entity_name: str | None = None,
-        fact_type: str | None = None,
+        entity_name: Optional[str] = None,
+        fact_type: Optional[str] = None,
     ) -> dict[str, Any]:
         from collections import defaultdict
 

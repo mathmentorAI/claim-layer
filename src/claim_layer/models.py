@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -6,8 +7,8 @@ from typing import Any
 
 @dataclass
 class IngestedSource:
-    page: int | None = None
-    paragraph_id: str | None = None
+    page: Optional[int] = None
+    paragraph_id: Optional[str] = None
     text: str = ""
 
 
@@ -23,8 +24,8 @@ class IngestedClaim:
     claim_id: str
     text: str
     confidence: float = 0.0
-    page: int | None = None
-    paragraph_id: str | None = None
+    page: Optional[int] = None
+    paragraph_id: Optional[str] = None
     embedding: list[float] | None = None
 
 

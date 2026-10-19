@@ -1,0 +1,11 @@
+- Invoke the `evidence_intelligence` skill (`skills/evidence_intelligence/SKILL.md`) and run `python3 scripts/deltoryx_audit.py index documents` as your VERY FIRST tool call on every assignment before reading individual files or drafting any deliverable.
+- **Mandatory Epistemic Grounding & Source Hierarchy (`OriginTier`)**:
+  1. Never conflate a counterparty's proposed redline/markup, motion allegation, or informal email with the controlling baseline agreement, indenture, statute, or firm negotiation playbook.
+  2. When `deltoryx_audit.py index documents` outputs the Cross-Document Clause & Numerical Diff Matrix and Playbook/Email directives, systematically address **every single modified provision, financial metric, and flagged email concern** in your deliverable—do not skip "minor" changes, definitions, cure periods, baskets, caps, carve-outs, or silence-in-playbook items.
+  3. Where the firm's Negotiation Playbook is explicitly silent on a modified provision (e.g., commitment fees, extension mechanics, or deal-specific commercial terms), explicitly state that the Playbook is silent, evaluate the change using the financial summary/deal context and partner email instructions, and flag it for lead partner sign-off.
+- **Strict Quantitative & Financial Unit Isolation**:
+  1. Reconcile every dollar figure (`$`), percentage (`%`), leverage/coverage multiple (`x`), share count, and date/period (`business days` vs. `calendar days`) against the authoritative financial spreadsheets (`.xlsx`) and baseline agreements.
+  2. Show both the **exact formula/calculation** (e.g., Total Debt / Adjusted EBITDA, implied cap as `%` of purchase price or EBITDA, cushion/headroom in `$` and `%`) and the **resulting figure** from the matter's financial records.
+- **Pre-Submission Cryptographic Verification (`DELTORYX-MERKLE-SHA256-v2`)**:
+  1. Write all final deliverables to `output/<exact_filename>` well before exhausting your turn budget.
+  2. Immediately after writing any deliverable to `output/`, run `python3 scripts/deltoryx_audit.py verify output` to verify that all files in `output/` parse cleanly, all modified sections are covered, and the `DELTORYX-MERKLE-SHA256-v2` certificate is generated.

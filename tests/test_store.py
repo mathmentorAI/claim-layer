@@ -123,6 +123,26 @@ def test_delta_and_paragraph_indexes(tmp_path: Path):
     assert len(facttype_paragraphs) == 2
 
 
+def test_ingest_document_skips_identical_payload_when_hash_matches(tmp_path: Path):
+    store = ClaimLayerStore(tmp_path / "evidence.db")
+    payload = IngestedDocument(
+        project_id="demo",
+        filename="same.json",
+        file_hash="stable-hash",
+        entities=[{"entity_id": "acme", "name": "Acme Corp", "entity_type": "organization"}],
+        claims=[{"claim_id": "c1", "text": "Payment term is 30 days.", "confidence": 0.9}],
+        facts=[{"claim_ref": "c1", "entity_ref": "acme", "fact_type": "payment_term", "value": "30 days"}],
+    )
+
+    first = store.ingest_document(payload)
+    second = store.ingest_document(payload)
+
+    assert first == {"documents": 1, "entities": 1, "claims": 1, "facts": 1}
+    assert second == {"documents": 0, "entities": 0, "claims": 0, "facts": 0}
+    history = store.get_state_history("demo")
+    assert len(history) == 1
+
+
 def test_knowledge_and_accumulation_and_graph(tmp_path: Path):
     store = ClaimLayerStore(tmp_path / "evidence.db")
     store.ingest_document(
