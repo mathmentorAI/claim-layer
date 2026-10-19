@@ -1,23 +1,42 @@
 from __future__ import annotations
 from typing import Optional
 
+import hashlib
 import json
+import os
 import sqlite3
+import uuid
 from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-from .models import IngestedClaim, IngestedDocument, IngestedEntity, IngestedFact, IngestedSource
+from .models import IngestedClaim, IngestedDocument, IngestedEntity, IngestedFact, IngestedSource, IngestedSegment
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+_DEBUG_INGEST = os.environ.get("DELTORYX_DEBUG_INGESTION", "false").lower() == "true"
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS extraction_configs (
+    id TEXT PRIMARY KEY,
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    mode TEXT NOT NULL,
+    policy TEXT NOT NULL,
+    version TEXT NOT NULL,
+    endpoint TEXT,
+    api_key TEXT,
+    profile TEXT NOT NULL DEFAULT 'custom',
+    focus TEXT NOT NULL DEFAULT '[]',
+    interpreter TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS documents (
@@ -26,6 +45,7 @@ CREATE TABLE IF NOT EXISTS documents (
     filename TEXT NOT NULL,
     hash TEXT NOT NULL DEFAULT '',
     pipeline_version TEXT NOT NULL DEFAULT '',
+    extraction_config_id TEXT NOT NULL DEFAULT 'legacy_default',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(project_id, filename)
 );
@@ -57,7 +77,10 @@ CREATE TABLE IF NOT EXISTS facts (
     entity_id INTEGER NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
     fact_type TEXT NOT NULL,
     value TEXT NOT NULL,
-    verified TEXT NOT NULL DEFAULT 'pending'
+    verified TEXT NOT NULL DEFAULT 'pending',
+    valid_from TEXT DEFAULT NULL,
+    valid_until TEXT DEFAULT NULL,
+    inference_type TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS fact_sources (
@@ -108,6 +131,252 @@ CREATE INDEX IF NOT EXISTS idx_facts_type ON facts(fact_type);
 CREATE INDEX IF NOT EXISTS idx_fact_sources_fact ON fact_sources(fact_id);
 CREATE INDEX IF NOT EXISTS idx_entity_aliases_project ON entity_aliases(project_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_snapshots_project ON evidence_snapshots(project_id, created_at);
+
+CREATE TABLE IF NOT EXISTS human_resolutions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL,
+    entity_name TEXT NOT NULL COLLATE NOCASE,
+    fact_type TEXT NOT NULL,
+    selected_value TEXT NOT NULL,
+    user_id TEXT NOT NULL DEFAULT 'auditor',
+    reasoning TEXT NOT NULL DEFAULT '',
+    resolved_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(project_id, entity_name, fact_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_human_resolutions_lookup
+    ON human_resolutions(project_id, entity_name, fact_type);
+
+CREATE TABLE IF NOT EXISTS knowledge_state_versions (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    parent_id TEXT,
+    claim_set_id TEXT NOT NULL,
+    extraction_config_version TEXT NOT NULL,
+    normalization_version TEXT NOT NULL,
+    state_signature TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (parent_id) REFERENCES knowledge_state_versions(id)
+);
+
+CREATE TABLE IF NOT EXISTS evidence_segments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    segment_id TEXT NOT NULL,
+    text TEXT NOT NULL,
+    page_number INTEGER,
+    start_offset INTEGER,
+    end_offset INTEGER,
+    section_title TEXT,
+    embedding TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(document_id, segment_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_segments_document ON evidence_segments(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_ksv_project_created
+    ON knowledge_state_versions(project_id, created_at);
+
+CREATE TABLE IF NOT EXISTS query_executions (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    state_version_id TEXT NOT NULL,
+    protocol_id TEXT,
+    query TEXT NOT NULL,
+    result_value TEXT,
+    confidence REAL NOT NULL,
+    supporting_claims TEXT NOT NULL DEFAULT '[]',
+    contradictions TEXT NOT NULL DEFAULT '[]',
+    evidence_selection TEXT NOT NULL DEFAULT '[]',
+    weighting TEXT NOT NULL DEFAULT '[]',
+    query_mode TEXT NOT NULL DEFAULT 'explicit_only',
+    used_knowledge_levels TEXT NOT NULL DEFAULT '[]',
+    grounding_status TEXT,
+    supporting_fact_ids TEXT NOT NULL DEFAULT '[]',
+    contradiction_fact_ids TEXT NOT NULL DEFAULT '[]',
+    answer_type TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (state_version_id) REFERENCES knowledge_state_versions(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_query_exec_project_created
+    ON query_executions(project_id, created_at);
+
+CREATE TABLE IF NOT EXISTS scenario_specific_evidence (
+    id TEXT PRIMARY KEY,
+    scenario_id TEXT NOT NULL,
+    project_id TEXT NOT NULL,
+    query_execution_id TEXT NOT NULL,
+    trace_id TEXT,
+    evidence_type TEXT NOT NULL,
+    subject TEXT,
+    predicate TEXT,
+    object TEXT,
+    value TEXT,
+    confidence REAL NOT NULL DEFAULT 0.0,
+    source TEXT NOT NULL DEFAULT 'llm_scenario_extractor',
+    derived_from TEXT NOT NULL DEFAULT '[]',
+    used_by_inference_ids TEXT NOT NULL DEFAULT '[]',
+    promotion_policy TEXT NOT NULL DEFAULT 'never_automatic',
+    lineage TEXT NOT NULL DEFAULT '{}',
+    quote TEXT,
+    critical INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (query_execution_id) REFERENCES query_executions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_scenario_evidence_query_execution
+    ON scenario_specific_evidence(query_execution_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_scenario_evidence_project
+    ON scenario_specific_evidence(project_id, created_at);
+
+CREATE TABLE IF NOT EXISTS query_source_evidence_candidates (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    query_execution_id TEXT NOT NULL,
+    trace_id TEXT,
+    evidence_candidate_level TEXT NOT NULL,
+    entity TEXT,
+    predicate TEXT NOT NULL,
+    value TEXT,
+    confidence REAL NOT NULL DEFAULT 0.0,
+    source TEXT NOT NULL DEFAULT 'inline_query_source',
+    source_ref TEXT NOT NULL DEFAULT '{}',
+    quote TEXT,
+    promotion_policy TEXT NOT NULL DEFAULT 'never_automatic',
+    lineage TEXT NOT NULL DEFAULT '{}',
+    inference_type TEXT NOT NULL DEFAULT 'deductive',
+    inference_form_code TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (query_execution_id) REFERENCES query_executions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_query_source_candidates_execution
+    ON query_source_evidence_candidates(query_execution_id, created_at);
+
+CREATE TABLE IF NOT EXISTS query_preflight_contradictions (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    query_execution_id TEXT NOT NULL,
+    trace_id TEXT,
+    contradiction_type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    left_evidence_id TEXT,
+    right_evidence_id TEXT,
+    left_scope TEXT,
+    right_scope TEXT,
+    left_value TEXT,
+    right_value TEXT,
+    lineage TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (query_execution_id) REFERENCES query_executions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_query_preflight_execution
+    ON query_preflight_contradictions(query_execution_id, created_at);
+
+CREATE TABLE IF NOT EXISTS state_claim_snapshots (
+    state_version_id TEXT NOT NULL,
+    canonical_claim_id TEXT NOT NULL,
+    entity TEXT NOT NULL,
+    predicate TEXT NOT NULL,
+    value TEXT NOT NULL,
+    confidence REAL NOT NULL,
+    PRIMARY KEY (state_version_id, canonical_claim_id),
+    FOREIGN KEY (state_version_id) REFERENCES knowledge_state_versions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_state_claim_snapshots_state
+    ON state_claim_snapshots(state_version_id);
+
+CREATE INDEX IF NOT EXISTS idx_state_claim_snapshots_semantic
+    ON state_claim_snapshots(state_version_id, entity, predicate);
+
+CREATE TRIGGER IF NOT EXISTS trg_ksv_no_update
+BEFORE UPDATE ON knowledge_state_versions
+BEGIN
+    SELECT RAISE(FAIL, 'knowledge_state_versions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_ksv_no_delete
+BEFORE DELETE ON knowledge_state_versions
+BEGIN
+    SELECT RAISE(FAIL, 'knowledge_state_versions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qe_no_update
+BEFORE UPDATE ON query_executions
+BEGIN
+    SELECT RAISE(FAIL, 'query_executions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qe_no_delete
+BEFORE DELETE ON query_executions
+BEGIN
+    SELECT RAISE(FAIL, 'query_executions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_sse_no_update
+BEFORE UPDATE ON scenario_specific_evidence
+BEGIN
+    SELECT RAISE(FAIL, 'scenario_specific_evidence is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_sse_no_delete
+BEFORE DELETE ON scenario_specific_evidence
+BEGIN
+    SELECT RAISE(FAIL, 'scenario_specific_evidence is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qsec_no_update
+BEFORE UPDATE ON query_source_evidence_candidates
+BEGIN
+    SELECT RAISE(FAIL, 'query_source_evidence_candidates is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qsec_no_delete
+BEFORE DELETE ON query_source_evidence_candidates
+BEGIN
+    SELECT RAISE(FAIL, 'query_source_evidence_candidates is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qpfc_no_update
+BEFORE UPDATE ON query_preflight_contradictions
+BEGIN
+    SELECT RAISE(FAIL, 'query_preflight_contradictions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_qpfc_no_delete
+BEFORE DELETE ON query_preflight_contradictions
+BEGIN
+    SELECT RAISE(FAIL, 'query_preflight_contradictions is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_scs_no_update
+BEFORE UPDATE ON state_claim_snapshots
+BEGIN
+    SELECT RAISE(FAIL, 'state_claim_snapshots is append-only');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_scs_no_delete
+BEFORE DELETE ON state_claim_snapshots
+BEGIN
+    SELECT RAISE(FAIL, 'state_claim_snapshots is append-only');
+END;
+
+CREATE TABLE IF NOT EXISTS protocol_comparisons (
+    id TEXT PRIMARY KEY,
+    protocol_id_a TEXT NOT NULL,
+    protocol_id_b TEXT NOT NULL,
+    query TEXT NOT NULL,
+    diff_result TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_protocol_comparisons_created
+    ON protocol_comparisons(created_at);
 """
 
 
@@ -154,6 +423,20 @@ def _decode_embedding(raw: Optional[str]) -> list[float] | None:
     return json.loads(raw)
 
 
+def _as_segment(value: IngestedSegment | dict[str, Any]) -> IngestedSegment:
+    if isinstance(value, IngestedSegment):
+        return value
+    return IngestedSegment(
+        segment_id=str(value.get("segment_id") or ""),
+        text=str(value.get("text") or ""),
+        page_number=value.get("page_number"),
+        start_offset=value.get("start_offset"),
+        end_offset=value.get("end_offset"),
+        section_title=value.get("section_title"),
+        embedding=value.get("embedding"),
+    )
+
+
 def _as_fact(value: IngestedFact | dict[str, Any]) -> IngestedFact:
     if isinstance(value, IngestedFact):
         return value
@@ -164,6 +447,9 @@ def _as_fact(value: IngestedFact | dict[str, Any]) -> IngestedFact:
         value=str(value.get("value") or ""),
         verified=str(value.get("verified") or "pending"),
         sources=[_as_source(item) for item in value.get("sources", [])],
+        valid_from=value.get("valid_from"),
+        valid_until=value.get("valid_until"),
+        inference_type=value.get("inference_type"),
     )
 
 
@@ -192,6 +478,39 @@ class ClaimLayerStore:
     def _ensure_schema(self) -> None:
         with self._conn() as conn:
             conn.executescript(_SCHEMA_SQL)
+            try:
+                fact_fks = conn.execute("PRAGMA foreign_key_list(facts)").fetchall()
+                claim_fk_tables = {row["table"] for row in fact_fks if row["from"] == "claim_id"}
+                if claim_fk_tables and claim_fk_tables != {"claims"}:
+                    conn.execute("ALTER TABLE fact_sources RENAME TO fact_sources_legacy")
+                    conn.execute("ALTER TABLE facts RENAME TO facts_legacy")
+                    conn.executescript(
+                        """
+                        CREATE TABLE IF NOT EXISTS facts (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            claim_id INTEGER NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
+                            entity_id INTEGER NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+                            fact_type TEXT NOT NULL,
+                            value TEXT NOT NULL,
+                            verified TEXT NOT NULL DEFAULT 'pending'
+                        );
+
+                        CREATE TABLE IF NOT EXISTS fact_sources (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            fact_id INTEGER NOT NULL REFERENCES facts(id) ON DELETE CASCADE,
+                            document_id INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+                            page INTEGER,
+                            paragraph_id TEXT,
+                            text TEXT NOT NULL DEFAULT ''
+                        );
+
+                        CREATE INDEX IF NOT EXISTS idx_facts_entity ON facts(entity_id);
+                        CREATE INDEX IF NOT EXISTS idx_facts_type ON facts(fact_type);
+                        CREATE INDEX IF NOT EXISTS idx_fact_sources_fact ON fact_sources(fact_id);
+                        """
+                    )
+            except sqlite3.OperationalError:
+                pass
             conn.execute(
                 "INSERT OR REPLACE INTO schema_meta (key, value) VALUES (?, ?)",
                 ("schema_version", str(SCHEMA_VERSION)),
@@ -201,6 +520,73 @@ class ClaimLayerStore:
                 conn.execute("ALTER TABLE claims ADD COLUMN embedding TEXT DEFAULT NULL")
             except sqlite3.OperationalError:
                 pass  # column already exists
+
+            # Migration: temporal validity window + typed inference on facts (idempotent).
+            for column in ("valid_from TEXT DEFAULT NULL",
+                           "valid_until TEXT DEFAULT NULL",
+                           "inference_type TEXT DEFAULT NULL"):
+                try:
+                    conn.execute(f"ALTER TABLE facts ADD COLUMN {column}")
+                except sqlite3.OperationalError:
+                    pass  # column already exists
+            
+            # Migration: add extraction_config_id to existing documents
+            try:
+                conn.execute("ALTER TABLE documents ADD COLUMN extraction_config_id TEXT DEFAULT 'legacy_default'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE extraction_configs ADD COLUMN endpoint TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE extraction_configs ADD COLUMN api_key TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE extraction_configs ADD COLUMN profile TEXT NOT NULL DEFAULT 'custom'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE extraction_configs ADD COLUMN focus TEXT NOT NULL DEFAULT '[]'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE extraction_configs ADD COLUMN interpreter TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN protocol_id TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN query_mode TEXT NOT NULL DEFAULT 'explicit_only'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN used_knowledge_levels TEXT NOT NULL DEFAULT '[]'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN grounding_status TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN supporting_fact_ids TEXT NOT NULL DEFAULT '[]'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN contradiction_fact_ids TEXT NOT NULL DEFAULT '[]'")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE query_executions ADD COLUMN answer_type TEXT")
+            except sqlite3.OperationalError:
+                pass
+            try:
+                conn.execute("ALTER TABLE scenario_specific_evidence ADD COLUMN quote TEXT")
+            except sqlite3.OperationalError:
+                pass
 
     @staticmethod
     def _similarity_score(left: str, right: str) -> float:
@@ -213,7 +599,7 @@ class ClaimLayerStore:
         return re.sub(r"[^\w\s]", "", value or "").lower().strip()
 
     @staticmethod
-    def _noisy_or(confidences: list[float]) -> float:
+    def _aggregate_support(confidences: list[float]) -> float:
         if not confidences:
             return 0.0
         product = 1.0
@@ -222,23 +608,56 @@ class ClaimLayerStore:
             product *= 1.0 - bounded
         return round(1.0 - product, 4)
 
+    def upsert_extraction_config(self, config_dict: dict[str, Any]) -> str:
+        config_id = config_dict.get("id", "legacy_default")
+        focus = config_dict.get("focus", [])
+        if not isinstance(focus, list):
+            focus = []
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO extraction_configs (
+                    id, provider, model, mode, policy, version,
+                    endpoint, api_key, profile, focus, interpreter, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    config_id,
+                    config_dict.get("provider", "unknown"),
+                    config_dict.get("model", "unknown"),
+                    config_dict.get("mode", "unknown"),
+                    config_dict.get("policy", "unknown"),
+                    str(config_dict.get("version", "unknown")),
+                    config_dict.get("endpoint"),
+                    config_dict.get("api_key"),
+                    config_dict.get("profile", "custom"),
+                    json.dumps(focus),
+                    config_dict.get("interpreter"),
+                    config_dict.get("created_at") or datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+        return config_id
+
     def upsert_document(
         self,
         project_id: str,
         filename: str,
         file_hash: str = "",
         pipeline_version: str = "0.1.0",
+        extraction_config_id: str = "legacy_default",
     ) -> int:
         with self._conn() as conn:
             conn.execute(
                 """
-                INSERT INTO documents (project_id, filename, hash, pipeline_version)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO documents (project_id, filename, hash, pipeline_version, extraction_config_id)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(project_id, filename) DO UPDATE SET
                     hash = excluded.hash,
-                    pipeline_version = excluded.pipeline_version
+                    pipeline_version = excluded.pipeline_version,
+                    extraction_config_id = excluded.extraction_config_id
                 """,
-                (project_id, filename, file_hash, pipeline_version),
+                (project_id, filename, file_hash, pipeline_version, extraction_config_id),
             )
             row = conn.execute(
                 "SELECT id FROM documents WHERE project_id = ? AND filename = ?",
@@ -253,6 +672,86 @@ class ClaimLayerStore:
                 (project_id, filename),
             ).fetchone()
             return int(row["id"]) if row else None
+
+    def get_extraction_config(self, config_id: str) -> dict[str, Any] | None:
+        """Return a single extraction config by id, or None."""
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT id, provider, model, mode, policy, version, endpoint, api_key, profile, focus, interpreter, created_at "
+                "FROM extraction_configs WHERE id = ?",
+                (config_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        data = dict(row)
+        data["focus"] = json.loads(data.get("focus") or "[]")
+        return data
+
+    def list_extraction_configs(self) -> list[dict[str, Any]]:
+        """Return all extraction configs ordered by creation date descending."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT id, provider, model, mode, policy, version, endpoint, api_key, profile, focus, interpreter, created_at "
+                "FROM extraction_configs ORDER BY created_at DESC"
+            ).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["focus"] = json.loads(data.get("focus") or "[]")
+            result.append(data)
+        return result
+
+    def get_documents(self, project_id: str) -> list[dict[str, Any]]:
+        """Return all documents for a project ordered by creation date descending."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT filename, created_at,
+                       COALESCE(
+                           (SELECT COUNT(*) FROM claims cl
+                            JOIN documents d2 ON d2.id = cl.document_id
+                            WHERE d2.project_id = ? AND d2.filename = documents.filename),
+                           0
+                       ) AS claim_count
+                FROM documents
+                WHERE project_id = ?
+                ORDER BY created_at DESC
+                """,
+                (project_id, project_id),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_segments(self, project_id: str) -> list[dict[str, Any]]:
+        """Return all segments for a project."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT s.*, d.filename 
+                FROM evidence_segments s
+                JOIN documents d ON d.id = s.document_id
+                WHERE d.project_id = ?
+                """,
+                (project_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_claims_by_segment(self, document_id: int, paragraph_id: str) -> list[dict[str, Any]]:
+        """Return all claims/facts associated with a specific segment."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT f.id AS fact_id, f.fact_type, f.value, f.verified, 
+                       c.id AS claim_id, c.text AS claim_text, c.confidence, 
+                       e.name AS entity_name, e.type AS entity_type,
+                       c.page, c.paragraph_id
+                FROM facts f
+                JOIN claims c ON c.id = f.claim_id
+                JOIN entities e ON e.id = f.entity_id
+                WHERE c.document_id = ? AND c.paragraph_id = ?
+                """,
+                (document_id, paragraph_id),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def delete_document_by_filename(self, project_id: str, filename: str) -> bool:
         document_id = self.get_document_id(project_id, filename)
@@ -520,114 +1019,47 @@ class ClaimLayerStore:
     def clear_document_evidence(self, document_id: int) -> None:
         with self._conn() as conn:
             conn.execute("DELETE FROM claims WHERE document_id = ?", (document_id,))
+            conn.execute("DELETE FROM evidence_segments WHERE document_id = ?", (document_id,))
 
     def ingest_document(self, document: IngestedDocument | dict[str, Any]) -> dict[str, int]:
         payload = document if isinstance(document, IngestedDocument) else IngestedDocument(**document)
+        
+        extraction_config_id = "legacy_default"
+        if getattr(payload, "extraction_config", None):
+            # Dict cast handled dynamically, saving the config snapshot permanently
+            extraction_config_id = self.upsert_extraction_config(payload.extraction_config)
+            
+        doc_id = self.upsert_document(
+            payload.project_id, 
+            payload.filename, 
+            payload.file_hash, 
+            payload.pipeline_version,
+            extraction_config_id,
+        )
+        self.clear_document_evidence(doc_id)
 
-        if payload.file_hash:
-            with self._conn() as conn:
-                existing_doc = conn.execute(
-                    "SELECT hash, pipeline_version FROM documents WHERE project_id = ? AND filename = ?",
-                    (payload.project_id, payload.filename),
-                ).fetchone()
-            if (
-                existing_doc is not None
-                and str(existing_doc["hash"] or "") == str(payload.file_hash)
-                and str(existing_doc["pipeline_version"] or "") == str(payload.pipeline_version or "")
-            ):
-                return {"documents": 0, "entities": 0, "claims": 0, "facts": 0}
-
-        def _upsert_entity_with_dedup_in_conn(
-            conn: sqlite3.Connection,
-            *,
-            project_id: str,
-            name: str,
-            entity_type: str,
-            existing_by_type: dict[str, list[dict[str, Any]]],
-            similarity_threshold: float = 0.85,
-        ) -> int:
-            conn.execute(
-                "INSERT OR IGNORE INTO entities (project_id, name, type) VALUES (?, ?, ?)",
-                (project_id, name, entity_type),
+        entity_map: dict[str, int] = {}
+        for raw_entity in payload.entities:
+            entity = _as_entity(raw_entity)
+            if not entity.name:
+                continue
+            entity_map[entity.entity_id or entity.name] = self.upsert_entity_with_dedup(
+                payload.project_id,
+                entity.name,
+                entity.entity_type,
             )
-            row = conn.execute(
-                "SELECT id FROM entities WHERE project_id = ? AND name = ? COLLATE NOCASE AND type = ?",
-                (project_id, name, entity_type),
-            ).fetchone()
-            entity_id = int(row["id"])
 
-            candidates = existing_by_type.setdefault(entity_type, [])
-            best_match: dict[str, Any] | None = None
-            best_score = 0.0
-            for item in candidates:
-                if int(item["id"]) == entity_id:
-                    continue
-                score = self._similarity_score(name, str(item["name"]))
-                if score >= similarity_threshold and score > best_score:
-                    best_score = score
-                    best_match = item
-            if best_match:
-                if len(str(best_match["name"])) >= len(name):
-                    canonical_id, alias_id = int(best_match["id"]), entity_id
-                else:
-                    canonical_id, alias_id = entity_id, int(best_match["id"])
-                if canonical_id != alias_id:
-                    conn.execute(
-                        """
-                        INSERT OR IGNORE INTO entity_aliases
-                        (project_id, canonical_entity_id, alias_entity_id, reviewer_note)
-                        VALUES (?, ?, ?, ?)
-                        """,
-                        (project_id, canonical_id, alias_id, f"auto_dedup: score={best_score:.2f}"),
-                    )
-
-            if not any(int(item["id"]) == entity_id for item in candidates):
-                candidates.append({"id": entity_id, "name": name})
-            return entity_id
-
+        claim_map: dict[str, int] = {}
+        facts_inserted = 0
+        skipped_claims_missing_text = 0
+        skipped_facts_missing_claim = 0
+        skipped_facts_missing_entity = 0
+        skipped_facts_missing_value = 0
         with self._conn() as conn:
-            conn.execute(
-                """
-                INSERT INTO documents (project_id, filename, hash, pipeline_version)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(project_id, filename) DO UPDATE SET
-                    hash = excluded.hash,
-                    pipeline_version = excluded.pipeline_version
-                """,
-                (payload.project_id, payload.filename, payload.file_hash, payload.pipeline_version),
-            )
-            doc_row = conn.execute(
-                "SELECT id FROM documents WHERE project_id = ? AND filename = ?",
-                (payload.project_id, payload.filename),
-            ).fetchone()
-            doc_id = int(doc_row["id"])
-            conn.execute("DELETE FROM claims WHERE document_id = ?", (doc_id,))
-
-            existing_rows = conn.execute(
-                "SELECT id, name, type FROM entities WHERE project_id = ?",
-                (payload.project_id,),
-            ).fetchall()
-            existing_by_type: dict[str, list[dict[str, Any]]] = {}
-            for row in existing_rows:
-                existing_by_type.setdefault(str(row["type"]), []).append({"id": int(row["id"]), "name": str(row["name"])})
-
-            entity_map: dict[str, int] = {}
-            for raw_entity in payload.entities:
-                entity = _as_entity(raw_entity)
-                if not entity.name:
-                    continue
-                entity_map[entity.entity_id or entity.name] = _upsert_entity_with_dedup_in_conn(
-                    conn,
-                    project_id=payload.project_id,
-                    name=entity.name,
-                    entity_type=entity.entity_type,
-                    existing_by_type=existing_by_type,
-                )
-
-            claim_map: dict[str, int] = {}
             for raw_claim in payload.claims:
                 claim = _as_claim(raw_claim)
                 if not claim.text:
+                    skipped_claims_missing_text += 1
                     continue
                 cursor = conn.execute(
                     """
@@ -656,33 +1088,96 @@ class ClaimLayerStore:
                             (_encode_embedding(vec), claim_db_id),
                         )
 
-            facts_inserted = 0
+            for raw_segment in payload.segments:
+                seg = _as_segment(raw_segment)
+                if not seg.text:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO evidence_segments (
+                        document_id, segment_id, text, page_number, 
+                        start_offset, end_offset, section_title, embedding
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        doc_id,
+                        seg.segment_id,
+                        seg.text,
+                        seg.page_number,
+                        seg.start_offset,
+                        seg.end_offset,
+                        seg.section_title,
+                        _encode_embedding(seg.embedding) if seg.embedding else None,
+                    ),
+                )
+
             for raw_fact in payload.facts:
                 fact = _as_fact(raw_fact)
                 claim_id = claim_map.get(fact.claim_ref)
                 entity_id = entity_map.get(fact.entity_ref)
-                if claim_id is None or entity_id is None or not fact.value:
+                if claim_id is None:
+                    skipped_facts_missing_claim += 1
                     continue
-                cursor = conn.execute(
-                    "INSERT INTO facts (claim_id, entity_id, fact_type, value, verified) VALUES (?, ?, ?, ?, ?)",
-                    (claim_id, entity_id, fact.fact_type, fact.value, fact.verified),
-                )
+                if entity_id is None:
+                    skipped_facts_missing_entity += 1
+                    continue
+                if not fact.value:
+                    skipped_facts_missing_value += 1
+                    continue
+                try:
+                    cursor = conn.execute(
+                        """
+                        INSERT INTO facts (claim_id, entity_id, fact_type, value, verified,
+                                           valid_from, valid_until, inference_type)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (claim_id, entity_id, fact.fact_type, fact.value, fact.verified,
+                         fact.valid_from, fact.valid_until, fact.inference_type),
+                    )
+                except sqlite3.IntegrityError:
+                    if _DEBUG_INGEST:
+                        claim_exists = conn.execute("SELECT id, document_id, text FROM claims WHERE id = ?", (claim_id,)).fetchone()
+                        entity_exists = conn.execute("SELECT id, project_id, name FROM entities WHERE id = ?", (entity_id,)).fetchone()
+                        print(
+                            "[claim-layer:fact-insert-error]",
+                            {
+                                "fact_claim_ref": fact.claim_ref,
+                                "fact_entity_ref": fact.entity_ref,
+                                "resolved_claim_id": claim_id,
+                                "resolved_entity_id": entity_id,
+                                "claim_exists": dict(claim_exists) if claim_exists else None,
+                                "entity_exists": dict(entity_exists) if entity_exists else None,
+                                "fact_type": fact.fact_type,
+                                "value_preview": fact.value[:200],
+                            },
+                        )
+                    raise
                 fact_id = int(cursor.lastrowid)
                 facts_inserted += 1
-                if fact.sources:
-                    conn.executemany(
+                for source in fact.sources:
+                    conn.execute(
                         "INSERT INTO fact_sources (fact_id, document_id, page, paragraph_id, text) VALUES (?, ?, ?, ?, ?)",
-                        [
-                            (
-                                fact_id,
-                                doc_id,
-                                source.page,
-                                source.paragraph_id,
-                                source.text[:500],
-                            )
-                            for source in fact.sources
-                        ],
+                        (fact_id, doc_id, source.page, source.paragraph_id, source.text[:500]),
                     )
+
+        if _DEBUG_INGEST:
+            print(
+                "[claim-layer:ingest-summary]",
+                {
+                    "document": payload.filename,
+                    "payload_entities": len(payload.entities),
+                    "payload_claims": len(payload.claims),
+                    "payload_facts": len(payload.facts),
+                    "resolved_entities": len(entity_map),
+                    "inserted_claims": len(claim_map),
+                    "inserted_facts": facts_inserted,
+                    "skipped_claims_missing_text": skipped_claims_missing_text,
+                    "skipped_facts_missing_claim": skipped_facts_missing_claim,
+                    "skipped_facts_missing_entity": skipped_facts_missing_entity,
+                    "skipped_facts_missing_value": skipped_facts_missing_value,
+                },
+            )
 
         self.capture_snapshot(payload.project_id, trigger_document=payload.filename, trigger_action="ingest")
         return {"documents": 1, "entities": len(entity_map), "claims": len(claim_map), "facts": facts_inserted}
@@ -705,6 +1200,9 @@ class ClaimLayerStore:
                     f.fact_type,
                     f.value,
                     f.verified,
+                    f.valid_from,
+                    f.valid_until,
+                    f.inference_type,
                     e.id AS entity_id,
                     e.name AS entity_name,
                     e.type AS entity_type,
@@ -832,6 +1330,76 @@ class ClaimLayerStore:
                 (project_id,),
             ).fetchall()
             return [dict(row) for row in rows]
+
+    def resolve_conflict(
+        self,
+        project_id: str,
+        entity_name: str,
+        fact_type: str,
+        selected_value: str,
+        user_id: str = "auditor",
+        reasoning: str = "",
+    ) -> str:
+        """
+        Elevate selected_value as human-verified truth for entity+fact_type.
+
+        PRECEDENCE INVARIANTS:
+        human_verified > system_aggregation > raw_claims
+
+        CRITICAL OVERRIDE GUARANTEES:
+        - DO NOT delete conflicting claims.
+        - DO NOT modify original evidence or provenance coordinates.
+        - DO NOT collapse value sets (incertitude must be auditable).
+
+        - Upserts a row in human_resolutions (re-resolving overwrites the old record).
+        - Sets facts.verified = 'human' for matching facts; resets others to 'pending'.
+        - confidence column retains its original algorithmically computed support for audit.
+        - Returns resolved_at as an ISO-8601 UTC timestamp string.
+        """
+        resolved_at = datetime.now(timezone.utc).isoformat()
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO human_resolutions
+                    (project_id, entity_name, fact_type, selected_value, user_id, reasoning, resolved_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(project_id, entity_name, fact_type)
+                DO UPDATE SET
+                    selected_value = excluded.selected_value,
+                    user_id        = excluded.user_id,
+                    reasoning      = excluded.reasoning,
+                    resolved_at    = excluded.resolved_at
+                """,
+                (project_id, entity_name, fact_type, selected_value, user_id, reasoning, resolved_at),
+            )
+            conn.execute(
+                """
+                UPDATE facts
+                SET verified = CASE WHEN value = ? THEN 'human' ELSE 'pending' END
+                WHERE fact_type = ?
+                  AND entity_id IN (
+                      SELECT e.id FROM entities e
+                      WHERE e.project_id = ? AND e.name = ? COLLATE NOCASE
+                  )
+                """,
+                (selected_value, fact_type, project_id, entity_name),
+            )
+        return resolved_at
+
+    def get_resolution(
+        self, project_id: str, entity_name: str, fact_type: str
+    ) -> dict[str, Any] | None:
+        """Return the human resolution record for entity+fact_type, or None."""
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT selected_value, user_id, reasoning, resolved_at
+                FROM human_resolutions
+                WHERE project_id = ? AND entity_name = ? AND fact_type = ?
+                """,
+                (project_id, entity_name, fact_type),
+            ).fetchone()
+            return dict(row) if row else None
 
     def get_cross_document_entities(self, project_id: str) -> list[dict[str, Any]]:
         with self._conn() as conn:
@@ -979,7 +1547,7 @@ class ClaimLayerStore:
         result: dict[str, Any] = {}
         for _, items in grouped.items():
             display_value = str(items[0]["value"])
-            raw_conf = self._noisy_or([float(item.get("confidence") or 0.0) for item in items])
+            raw_conf = self._aggregate_support([float(item.get("confidence") or 0.0) for item in items])
             result[display_value] = {
                 "raw_confidence": raw_conf,
                 "adjusted_confidence": round(raw_conf * penalty, 4),
@@ -1017,7 +1585,7 @@ class ClaimLayerStore:
             total_source_count += value_data["source_count"]
             all_sources.extend(value_data["sources"])
         candidate_values.sort(key=lambda item: item["confidence"], reverse=True)
-        aggregate_confidence = self._noisy_or([item["confidence"] for item in candidate_values])
+        aggregate_confidence = self._aggregate_support([item["confidence"] for item in candidate_values])
         return {
             "entity": entity_name,
             "fact_type": fact_type,
@@ -1494,7 +2062,7 @@ class ClaimLayerStore:
                 value_confidences[normalized_value].append(float(record["confidence"] or 0.0))
                 value_count = len(value_confidences)
                 penalty = 1.0 / value_count if value_count > 1 else 1.0
-                aggregate = self._noisy_or([self._noisy_or(values) * penalty for values in value_confidences.values()])
+                aggregate = self._aggregate_support([self._aggregate_support(values) * penalty for values in value_confidences.values()])
                 point = {
                     "document": record["filename"],
                     "claim_confidence": record["confidence"],
@@ -1575,7 +2143,15 @@ class ClaimLayerStore:
             ).fetchall()
         return [dict(row) for row in rows]
 
-    def get_evidence_graph(self, project_id: str) -> dict[str, Any]:
+    def get_knowledge_state(self, project_id: str) -> dict[str, Any]:
+        """
+        Returns the computed knowledge state for a given project context.
+
+        The state is:
+        - derived from all available claims
+        - computed (not stored as absolute truth)
+        - inclusive of contradictions
+        """
         facts = self.get_facts(project_id=project_id)
         contradictions = self.get_contradictions(project_id)
         alias_groups = self.get_alias_groups(project_id)
@@ -1639,4 +2215,774 @@ class ClaimLayerStore:
                 "fact_count": len([node for node in nodes if node["type"] == "fact"]),
                 "document_count": len([node for node in nodes if node["type"] == "document"]),
             },
+        }
+
+    # ------------------------------------------------------------------
+    # Knowledge Ledger (append-only)
+    # ------------------------------------------------------------------
+
+    def _canonical_claim_set(self, project_id: str) -> list[dict[str, Any]]:
+        rows = self.get_facts(project_id=project_id)
+        canonical = [
+            {
+                "entity": row["entity_name"],
+                "predicate": row["fact_type"],
+                "value": row["value"],
+                "confidence": round(float(row["confidence"] or 0.0), 6),
+                "document": row["filename"],
+                "page": row["page"],
+                "paragraph_id": row["paragraph_id"] or "",
+                "verified": row["verified"],
+                "fact_id": int(row["fact_id"]),
+            }
+            for row in rows
+        ]
+        canonical.sort(
+            key=lambda item: (
+                item["entity"],
+                item["predicate"],
+                item["value"],
+                item["document"],
+                item["page"] if item["page"] is not None else -1,
+                item["paragraph_id"],
+                item["fact_id"],
+            )
+        )
+        return canonical
+
+    def _hash_payload(self, payload: Any) -> str:
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    def _canonical_claim_snapshot(self, project_id: str) -> list[dict[str, Any]]:
+        claim_set = self._canonical_claim_set(project_id)
+        snapshot_by_id: dict[str, dict[str, Any]] = {}
+
+        for item in claim_set:
+            canonical = {
+                "entity": str(item["entity"]),
+                "predicate": str(item["predicate"]),
+                "value": str(item["value"]),
+                "confidence": round(float(item["confidence"]), 6),
+            }
+            canonical_claim_id = self._hash_payload(canonical)
+            snapshot_by_id[canonical_claim_id] = {
+                "canonical_claim_id": canonical_claim_id,
+                **canonical,
+            }
+
+        snapshot = list(snapshot_by_id.values())
+
+        snapshot.sort(
+            key=lambda item: (
+                item["entity"],
+                item["predicate"],
+                item["value"],
+                item["confidence"],
+                item["canonical_claim_id"],
+            )
+        )
+        return snapshot
+
+    def get_latest_knowledge_state_version(self, project_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT id, project_id, parent_id, claim_set_id, extraction_config_version,
+                       normalization_version, state_signature, created_at
+                FROM knowledge_state_versions
+                WHERE project_id = ?
+                ORDER BY rowid DESC
+                LIMIT 1
+                """,
+                (project_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def list_knowledge_state_versions(self, project_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, project_id, parent_id, claim_set_id, extraction_config_version,
+                       normalization_version, state_signature, created_at
+                FROM knowledge_state_versions
+                WHERE project_id = ?
+                ORDER BY rowid DESC
+                """,
+                (project_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_knowledge_state_version(self, version_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT id, project_id, parent_id, claim_set_id, extraction_config_version,
+                       normalization_version, state_signature, created_at
+                FROM knowledge_state_versions
+                WHERE id = ?
+                """,
+                (version_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def create_knowledge_state_version(
+        self,
+        project_id: str,
+        extraction_config_version: str,
+        normalization_version: str,
+    ) -> dict[str, Any]:
+        parent = self.get_latest_knowledge_state_version(project_id)
+        parent_signature = parent["state_signature"] if parent else ""
+
+        claim_set = self._canonical_claim_set(project_id)
+        claim_set_id = self._hash_payload(claim_set)
+
+        state_signature = self._hash_payload(
+            {
+                "claim_set": claim_set,
+                "extraction_config": extraction_config_version,
+                "normalization": normalization_version,
+                "parent_signature": parent_signature,
+            }
+        )
+
+        version_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).isoformat()
+
+        claim_snapshot = self._canonical_claim_snapshot(project_id)
+
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO knowledge_state_versions (
+                    id, project_id, parent_id, claim_set_id,
+                    extraction_config_version, normalization_version,
+                    state_signature, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    version_id,
+                    project_id,
+                    parent["id"] if parent else None,
+                    claim_set_id,
+                    str(extraction_config_version),
+                    str(normalization_version),
+                    state_signature,
+                    created_at,
+                ),
+            )
+
+            conn.executemany(
+                """
+                INSERT INTO state_claim_snapshots (
+                    state_version_id, canonical_claim_id, entity, predicate, value, confidence
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        version_id,
+                        row["canonical_claim_id"],
+                        row["entity"],
+                        row["predicate"],
+                        row["value"],
+                        float(row["confidence"]),
+                    )
+                    for row in claim_snapshot
+                ],
+            )
+
+        return {
+            "id": version_id,
+            "project_id": project_id,
+            "parent_id": parent["id"] if parent else None,
+            "claim_set_id": claim_set_id,
+            "extraction_config_version": str(extraction_config_version),
+            "normalization_version": str(normalization_version),
+            "state_signature": state_signature,
+            "created_at": created_at,
+        }
+
+    def get_state_claim_snapshots(self, version_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT state_version_id, canonical_claim_id, entity, predicate, value, confidence
+                FROM state_claim_snapshots
+                WHERE state_version_id = ?
+                ORDER BY entity, predicate, value, confidence, canonical_claim_id
+                """,
+                (version_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def diff_knowledge_state_versions(self, state_a: str, state_b: str) -> dict[str, Any]:
+        version_a = self.get_knowledge_state_version(state_a)
+        version_b = self.get_knowledge_state_version(state_b)
+        if version_a is None:
+            raise ValueError(f"knowledge_state_version '{state_a}' not found")
+        if version_b is None:
+            raise ValueError(f"knowledge_state_version '{state_b}' not found")
+        if version_a["project_id"] != version_b["project_id"]:
+            raise ValueError("Cannot diff states from different projects")
+
+        rows_a = self.get_state_claim_snapshots(state_a)
+        rows_b = self.get_state_claim_snapshots(state_b)
+
+        by_id_a = {row["canonical_claim_id"]: row for row in rows_a}
+        by_id_b = {row["canonical_claim_id"]: row for row in rows_b}
+
+        def key_fn(row: dict[str, Any]) -> tuple[str, str]:
+            return (str(row["entity"]), str(row["predicate"]))
+
+        grouped_a: dict[tuple[str, str], list[dict[str, Any]]] = {}
+        grouped_b: dict[tuple[str, str], list[dict[str, Any]]] = {}
+
+        for row in rows_a:
+            grouped_a.setdefault(key_fn(row), []).append(row)
+        for row in rows_b:
+            grouped_b.setdefault(key_fn(row), []).append(row)
+
+        consumed_a: set[str] = set()
+        consumed_b: set[str] = set()
+        changed: list[dict[str, Any]] = []
+
+        for semantic_key in sorted(set(grouped_a.keys()) & set(grouped_b.keys())):
+            left = sorted(
+                grouped_a[semantic_key],
+                key=lambda row: (row["value"], float(row["confidence"]), row["canonical_claim_id"]),
+            )
+            right = sorted(
+                grouped_b[semantic_key],
+                key=lambda row: (row["value"], float(row["confidence"]), row["canonical_claim_id"]),
+            )
+
+            for before, after in zip(left, right):
+                value_changed = str(before["value"]) != str(after["value"])
+                confidence_changed = float(before["confidence"]) != float(after["confidence"])
+                if value_changed or confidence_changed:
+                    consumed_a.add(before["canonical_claim_id"])
+                    consumed_b.add(after["canonical_claim_id"])
+                    changed.append(
+                        {
+                            "entity": str(before["entity"]),
+                            "predicate": str(before["predicate"]),
+                            "before": {
+                                "canonical_claim_id": before["canonical_claim_id"],
+                                "entity": str(before["entity"]),
+                                "predicate": str(before["predicate"]),
+                                "value": str(before["value"]),
+                                "confidence": float(before["confidence"]),
+                            },
+                            "after": {
+                                "canonical_claim_id": after["canonical_claim_id"],
+                                "entity": str(after["entity"]),
+                                "predicate": str(after["predicate"]),
+                                "value": str(after["value"]),
+                                "confidence": float(after["confidence"]),
+                            },
+                        }
+                    )
+
+        added = [
+            {
+                "canonical_claim_id": row["canonical_claim_id"],
+                "entity": str(row["entity"]),
+                "predicate": str(row["predicate"]),
+                "value": str(row["value"]),
+                "confidence": float(row["confidence"]),
+            }
+            for claim_id, row in sorted(by_id_b.items(), key=lambda item: item[0])
+            if claim_id not in by_id_a and claim_id not in consumed_b
+        ]
+
+        removed = [
+            {
+                "canonical_claim_id": row["canonical_claim_id"],
+                "entity": str(row["entity"]),
+                "predicate": str(row["predicate"]),
+                "value": str(row["value"]),
+                "confidence": float(row["confidence"]),
+            }
+            for claim_id, row in sorted(by_id_a.items(), key=lambda item: item[0])
+            if claim_id not in by_id_b and claim_id not in consumed_a
+        ]
+
+        return {
+            "state_a": state_a,
+            "state_b": state_b,
+            "added": added,
+            "removed": removed,
+            "changed": changed,
+        }
+
+    def verify_knowledge_state_signature(self, version_id: str) -> bool:
+        row = self.get_knowledge_state_version(version_id)
+        if row is None:
+            return False
+
+        parent_signature = ""
+        if row["parent_id"]:
+            parent = self.get_knowledge_state_version(row["parent_id"])
+            if parent is None:
+                return False
+            parent_signature = parent["state_signature"]
+
+        claim_set = self._canonical_claim_set(row["project_id"])
+        claim_set_id = self._hash_payload(claim_set)
+        if claim_set_id != row["claim_set_id"]:
+            return False
+
+        recomputed_signature = self._hash_payload(
+            {
+                "claim_set": claim_set,
+                "extraction_config": row["extraction_config_version"],
+                "normalization": row["normalization_version"],
+                "parent_signature": parent_signature,
+            }
+        )
+        return recomputed_signature == row["state_signature"]
+
+    def log_query_execution(
+        self,
+        project_id: str,
+        state_version_id: str,
+        protocol_id: str | None,
+        query: str,
+        result_value: Any,
+        confidence: float,
+        supporting_claims: list[str],
+        contradictions: list[str],
+        evidence_selection: list[str],
+        weighting: list[float],
+        query_mode: str = "explicit_only",
+        used_knowledge_levels: list[str] | None = None,
+        grounding_status: str | None = None,
+        supporting_fact_ids: list[str] | None = None,
+        contradiction_fact_ids: list[str] | None = None,
+        answer_type: str | None = None,
+    ) -> dict[str, Any]:
+        execution_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).isoformat()
+
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO query_executions (
+                    id, project_id, state_version_id, protocol_id, query, result_value,
+                    confidence, supporting_claims, contradictions,
+                    evidence_selection, weighting, query_mode, used_knowledge_levels,
+                    grounding_status, supporting_fact_ids, contradiction_fact_ids,
+                    answer_type, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    execution_id,
+                    project_id,
+                    state_version_id,
+                    protocol_id,
+                    query,
+                    None if result_value is None else json.dumps(result_value),
+                    float(confidence),
+                    json.dumps(supporting_claims),
+                    json.dumps(contradictions),
+                    json.dumps(evidence_selection),
+                    json.dumps(weighting),
+                    str(query_mode or "explicit_only"),
+                    json.dumps(list(used_knowledge_levels or [])),
+                    grounding_status,
+                    json.dumps(list(supporting_fact_ids or supporting_claims)),
+                    json.dumps(list(contradiction_fact_ids or contradictions)),
+                    answer_type,
+                    created_at,
+                ),
+            )
+
+        return {
+            "id": execution_id,
+            "project_id": project_id,
+            "state_version_id": state_version_id,
+            "protocol_id": protocol_id,
+            "query": query,
+            "result_value": result_value,
+            "confidence": float(confidence),
+            "supporting_claims": supporting_claims,
+            "contradictions": contradictions,
+            "evidence_selection": evidence_selection,
+            "weighting": weighting,
+            "query_mode": str(query_mode or "explicit_only"),
+            "used_knowledge_levels": list(used_knowledge_levels or []),
+            "grounding_status": grounding_status,
+            "supporting_fact_ids": list(supporting_fact_ids or supporting_claims),
+            "contradiction_fact_ids": list(contradiction_fact_ids or contradictions),
+            "answer_type": answer_type,
+            "created_at": created_at,
+        }
+
+    def log_scenario_specific_evidence(
+        self,
+        *,
+        project_id: str,
+        query_execution_id: str,
+        trace_id: str | None,
+        scenario_specific_evidence: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        scenario_id = f"scenario:{query_execution_id}"
+        created: list[dict[str, Any]] = []
+        now = datetime.now(timezone.utc).isoformat()
+
+        with self._conn() as conn:
+            for index, unit in enumerate(scenario_specific_evidence, start=1):
+                evidence_id = str(unit.get("id") or uuid.uuid4())
+                derived_from = list(unit.get("derived_from") or [])
+                used_by_inference_ids = list(unit.get("used_by_inference_ids") or [])
+                lineage = dict(unit.get("lineage") or {})
+                lineage.setdefault("query_execution_id", query_execution_id)
+                lineage.setdefault("source_index", index)
+                row = {
+                    "id": evidence_id,
+                    "scenario_id": scenario_id,
+                    "project_id": project_id,
+                    "query_execution_id": query_execution_id,
+                    "trace_id": trace_id,
+                    "evidence_type": str(unit.get("evidence_type") or "scenario_observation"),
+                    "subject": unit.get("subject"),
+                    "predicate": unit.get("predicate"),
+                    "object": unit.get("object"),
+                    "value": unit.get("value"),
+                    "confidence": float(unit.get("confidence") or 0.0),
+                    "source": str(unit.get("source") or "llm_scenario_extractor"),
+                    "derived_from": derived_from,
+                    "used_by_inference_ids": used_by_inference_ids,
+                    "promotion_policy": "never_automatic",
+                    "lineage": lineage,
+                    "quote": unit.get("quote"),
+                    "critical": bool(unit.get("critical", False)),
+                    "created_at": now,
+                }
+                conn.execute(
+                    """
+                    INSERT INTO scenario_specific_evidence (
+                        id, scenario_id, project_id, query_execution_id, trace_id,
+                        evidence_type, subject, predicate, object, value, confidence,
+                        source, derived_from, used_by_inference_ids, promotion_policy,
+                        lineage, quote, critical, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        row["id"],
+                        row["scenario_id"],
+                        row["project_id"],
+                        row["query_execution_id"],
+                        row["trace_id"],
+                        row["evidence_type"],
+                        row["subject"],
+                        row["predicate"],
+                        row["object"],
+                        None if row["value"] is None else json.dumps(row["value"]),
+                        row["confidence"],
+                        row["source"],
+                        json.dumps(row["derived_from"]),
+                        json.dumps(row["used_by_inference_ids"]),
+                        row["promotion_policy"],
+                        json.dumps(row["lineage"], sort_keys=True),
+                        row["quote"],
+                        1 if row["critical"] else 0,
+                        row["created_at"],
+                    ),
+                )
+                created.append(row)
+
+        return created
+
+    def list_scenario_specific_evidence(self, query_execution_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT *
+                FROM scenario_specific_evidence
+                WHERE query_execution_id = ?
+                ORDER BY rowid ASC
+                """,
+                (query_execution_id,),
+            ).fetchall()
+
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            raw_value = data.get("value")
+            data["value"] = None if raw_value is None else json.loads(raw_value)
+            data["derived_from"] = json.loads(data.get("derived_from") or "[]")
+            data["used_by_inference_ids"] = json.loads(data.get("used_by_inference_ids") or "[]")
+            data["lineage"] = json.loads(data.get("lineage") or "{}")
+            data["critical"] = bool(data.get("critical"))
+            result.append(data)
+        return result
+
+    def log_source_evidence_candidates(
+        self,
+        *,
+        project_id: str,
+        query_execution_id: str,
+        trace_id: str | None,
+        source_evidence_candidates: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        created: list[dict[str, Any]] = []
+        now = datetime.now(timezone.utc).isoformat()
+        with self._conn() as conn:
+            for index, candidate in enumerate(source_evidence_candidates, start=1):
+                lineage = dict(candidate.get("lineage") or {})
+                lineage.setdefault("query_execution_id", query_execution_id)
+                lineage.setdefault("source_index", index)
+                row = {
+                    "id": str(candidate.get("id") or uuid.uuid4()),
+                    "project_id": project_id,
+                    "query_execution_id": query_execution_id,
+                    "trace_id": trace_id,
+                    "evidence_candidate_level": str(candidate.get("evidence_candidate_level") or "L1_evidence_candidate"),
+                    "entity": candidate.get("entity"),
+                    "predicate": str(candidate.get("predicate") or ""),
+                    "value": candidate.get("value"),
+                    "confidence": float(candidate.get("confidence") or 0.0),
+                    "source": str(candidate.get("source") or "inline_query_source"),
+                    "source_ref": dict(candidate.get("source_ref") or {}),
+                    "quote": candidate.get("quote"),
+                    "promotion_policy": "never_automatic",
+                    "lineage": lineage,
+                    "inference_type": str(candidate.get("inference_type") or "deductive"),
+                    "inference_form_code": candidate.get("inference_form_code"),
+                    "created_at": now,
+                }
+                conn.execute(
+                    """
+                    INSERT INTO query_source_evidence_candidates (
+                        id, project_id, query_execution_id, trace_id,
+                        evidence_candidate_level, entity, predicate, value, confidence,
+                        source, source_ref, quote, promotion_policy, lineage,
+                        inference_type, inference_form_code, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        row["id"],
+                        row["project_id"],
+                        row["query_execution_id"],
+                        row["trace_id"],
+                        row["evidence_candidate_level"],
+                        row["entity"],
+                        row["predicate"],
+                        None if row["value"] is None else json.dumps(row["value"]),
+                        row["confidence"],
+                        row["source"],
+                        json.dumps(row["source_ref"], sort_keys=True),
+                        row["quote"],
+                        row["promotion_policy"],
+                        json.dumps(row["lineage"], sort_keys=True),
+                        row["inference_type"],
+                        row["inference_form_code"],
+                        row["created_at"],
+                    ),
+                )
+                created.append(row)
+        return created
+
+    def list_source_evidence_candidates(self, query_execution_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT *
+                FROM query_source_evidence_candidates
+                WHERE query_execution_id = ?
+                ORDER BY rowid ASC
+                """,
+                (query_execution_id,),
+            ).fetchall()
+
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            raw_value = data.get("value")
+            data["value"] = None if raw_value is None else json.loads(raw_value)
+            data["source_ref"] = json.loads(data.get("source_ref") or "{}")
+            data["lineage"] = json.loads(data.get("lineage") or "{}")
+            result.append(data)
+        return result
+
+    def log_preflight_contradictions(
+        self,
+        *,
+        project_id: str,
+        query_execution_id: str,
+        trace_id: str | None,
+        preflight_contradictions: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        created: list[dict[str, Any]] = []
+        now = datetime.now(timezone.utc).isoformat()
+        with self._conn() as conn:
+            for index, contradiction in enumerate(preflight_contradictions, start=1):
+                lineage = dict(contradiction.get("lineage") or {})
+                lineage.setdefault("query_execution_id", query_execution_id)
+                lineage.setdefault("source_index", index)
+                row = {
+                    "id": str(contradiction.get("id") or uuid.uuid4()),
+                    "project_id": project_id,
+                    "query_execution_id": query_execution_id,
+                    "trace_id": trace_id,
+                    "contradiction_type": str(contradiction.get("contradiction_type") or "preflight_conflict"),
+                    "message": str(contradiction.get("message") or "Preflight evidence contradiction detected."),
+                    "left_evidence_id": contradiction.get("left_evidence_id"),
+                    "right_evidence_id": contradiction.get("right_evidence_id"),
+                    "left_scope": contradiction.get("left_scope"),
+                    "right_scope": contradiction.get("right_scope"),
+                    "left_value": contradiction.get("left_value"),
+                    "right_value": contradiction.get("right_value"),
+                    "lineage": lineage,
+                    "created_at": now,
+                }
+                conn.execute(
+                    """
+                    INSERT INTO query_preflight_contradictions (
+                        id, project_id, query_execution_id, trace_id, contradiction_type,
+                        message, left_evidence_id, right_evidence_id, left_scope,
+                        right_scope, left_value, right_value, lineage, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        row["id"],
+                        row["project_id"],
+                        row["query_execution_id"],
+                        row["trace_id"],
+                        row["contradiction_type"],
+                        row["message"],
+                        row["left_evidence_id"],
+                        row["right_evidence_id"],
+                        row["left_scope"],
+                        row["right_scope"],
+                        None if row["left_value"] is None else json.dumps(row["left_value"]),
+                        None if row["right_value"] is None else json.dumps(row["right_value"]),
+                        json.dumps(row["lineage"], sort_keys=True),
+                        row["created_at"],
+                    ),
+                )
+                created.append(row)
+        return created
+
+    def list_preflight_contradictions(self, query_execution_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT *
+                FROM query_preflight_contradictions
+                WHERE query_execution_id = ?
+                ORDER BY rowid ASC
+                """,
+                (query_execution_id,),
+            ).fetchall()
+
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["left_value"] = None if data.get("left_value") is None else json.loads(data["left_value"])
+            data["right_value"] = None if data.get("right_value") is None else json.loads(data["right_value"])
+            data["lineage"] = json.loads(data.get("lineage") or "{}")
+            result.append(data)
+        return result
+
+    def get_query_execution(self, execution_id: str) -> dict[str, Any] | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                """
+                SELECT id, project_id, state_version_id, query, result_value,
+                      protocol_id,
+                       confidence, supporting_claims, contradictions,
+                       evidence_selection, weighting, query_mode, used_knowledge_levels,
+                       grounding_status, supporting_fact_ids, contradiction_fact_ids,
+                       answer_type, created_at
+                FROM query_executions
+                WHERE id = ?
+                """,
+                (execution_id,),
+            ).fetchone()
+        if row is None:
+            return None
+
+        data = dict(row)
+        data["result_value"] = None if data["result_value"] is None else json.loads(data["result_value"])
+        data["supporting_claims"] = json.loads(data["supporting_claims"])
+        data["contradictions"] = json.loads(data["contradictions"])
+        data["evidence_selection"] = json.loads(data["evidence_selection"])
+        data["weighting"] = json.loads(data["weighting"])
+        data["used_knowledge_levels"] = json.loads(data.get("used_knowledge_levels") or "[]")
+        data["supporting_fact_ids"] = json.loads(data.get("supporting_fact_ids") or "[]")
+        data["contradiction_fact_ids"] = json.loads(data.get("contradiction_fact_ids") or "[]")
+        data["scenario_specific_evidence"] = self.list_scenario_specific_evidence(execution_id)
+        data["source_evidence_candidates"] = self.list_source_evidence_candidates(execution_id)
+        data["preflight_contradictions"] = self.list_preflight_contradictions(execution_id)
+        return data
+
+    def list_query_executions(self, project_id: str) -> list[dict[str, Any]]:
+        with self._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, project_id, state_version_id, query, result_value,
+                      protocol_id,
+                       confidence, supporting_claims, contradictions,
+                       evidence_selection, weighting, query_mode, used_knowledge_levels,
+                       grounding_status, supporting_fact_ids, contradiction_fact_ids,
+                       answer_type, created_at
+                FROM query_executions
+                WHERE project_id = ?
+                ORDER BY rowid DESC
+                """,
+                (project_id,),
+            ).fetchall()
+
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["result_value"] = None if data["result_value"] is None else json.loads(data["result_value"])
+            data["supporting_claims"] = json.loads(data["supporting_claims"])
+            data["contradictions"] = json.loads(data["contradictions"])
+            data["evidence_selection"] = json.loads(data["evidence_selection"])
+            data["weighting"] = json.loads(data["weighting"])
+            data["used_knowledge_levels"] = json.loads(data.get("used_knowledge_levels") or "[]")
+            data["supporting_fact_ids"] = json.loads(data.get("supporting_fact_ids") or "[]")
+            data["contradiction_fact_ids"] = json.loads(data.get("contradiction_fact_ids") or "[]")
+            execution_id = str(data["id"])
+            data["scenario_specific_evidence"] = self.list_scenario_specific_evidence(execution_id)
+            data["source_evidence_candidates"] = self.list_source_evidence_candidates(execution_id)
+            data["preflight_contradictions"] = self.list_preflight_contradictions(execution_id)
+            result.append(data)
+        return result
+
+    def create_protocol_comparison(
+        self,
+        protocol_id_a: str,
+        protocol_id_b: str,
+        query: str,
+        diff_result: dict[str, Any],
+    ) -> dict[str, Any]:
+        comparison_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).isoformat()
+        with self._conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO protocol_comparisons (id, protocol_id_a, protocol_id_b, query, diff_result, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    comparison_id,
+                    protocol_id_a,
+                    protocol_id_b,
+                    query,
+                    json.dumps(diff_result),
+                    created_at,
+                ),
+            )
+        return {
+            "id": comparison_id,
+            "protocol_id_a": protocol_id_a,
+            "protocol_id_b": protocol_id_b,
+            "query": query,
+            "diff_result": diff_result,
+            "created_at": created_at,
         }

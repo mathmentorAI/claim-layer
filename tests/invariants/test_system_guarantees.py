@@ -152,7 +152,9 @@ def test_guarantee_contradictions_always_surfaced():
 def test_guarantee_confidence_is_derivable():
     """
     The output confidence must equal noisy_or(selected_scores) × penalty,
-    where selected_scores excludes deduplicated (same-source) evidence.
+    where selected_scores excludes deduplicated (same-source) evidence and
+    penalty is the value's share of total support across competing values
+    (weighted penalty, guarantees.md v0.4 — not the legacy flat 1/N).
     No black-box transformation. Duplicate evidence must NOT increase confidence.
 
     Scenario A — no duplicates: confidence is derivable from all evidence.
@@ -173,8 +175,10 @@ def test_guarantee_confidence_is_derivable():
         weighted = weight_evidence(store, grouped, hits)
         results = resolve_truth(store, weighted)
 
-        score_30 = 0.8 * 0.9
-        expected_30 = round(noisy_or([score_30]) * (1 / 2), 6)
+        support_30 = noisy_or([0.8 * 0.9])   # 0.72
+        support_45 = noisy_or([0.6 * 0.7])   # 0.42
+        penalty_30 = support_30 / (support_30 + support_45)   # ≈ 0.631579
+        expected_30 = round(support_30 * penalty_30, 6)
         r = next(r for r in results if r["value"] == "30 days")
         assert r["confidence"] == pytest.approx(expected_30, abs=1e-6)
 

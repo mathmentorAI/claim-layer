@@ -4,19 +4,20 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from claim_layer.store import ClaimLayerStore
+from typing import Literal
 
 
 def _dedup_evidence(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Deduplicate evidence by source (document_id) within a single fact group.
+    """
+    Evidence must be deduplicated at the source-unit level before support aggregation.
 
-    Groups items by source. Within each group the item with the highest score
+    Repeated extractions of the same normalized claim from the same source unit
+    must not increase support more than once.
+
+    Groups items by source unit. Within each group the item with the highest score
     is selected for aggregation; the rest are marked selected=False with
     reason="duplicate". All items are returned so the full evidence trace is
     preserved in the output.
-
-    Dedup key within a (entity, predicate, value) group: source (document_id).
-    This handles the common case where the same fact appears in multiple chunks
-    of the same document.
     """
     by_source: dict[Any, list[dict[str, Any]]] = {}
     for ev in evidence:
@@ -62,7 +63,8 @@ def _build_explanation(
         )
 
     penalty_reason = (
-        f"{num_values} competing values detected"
+        f"{num_values} competing values detected — confidence scaled by this "
+        f"value's share of total support (weighted penalty, not flat 1/n)"
         if num_values > 1
         else "no competing values"
     )
@@ -74,19 +76,38 @@ def _build_explanation(
             {"claim_id": ev["claim_id"], "score": ev["score"]}
             for ev in selected_items
         ],
-        "aggregation_method": "noisy_or",
+        "aggregation_method": "aggregate_support(strategy='noisy_or')",
         "penalty": penalty,
         "penalty_reason": penalty_reason,
-        "final_confidence_formula": "noisy_or(scores) × penalty",
+        "final_confidence_formula": "aggregate_support(scores) × (value_support / total_support)",
         "summary": summary,
     }
 
 
+AggregationStrategy = Literal["noisy_or", "sum_norm", "max", "custom"]
+
+
 def noisy_or(confidences: list[float]) -> float:
-    result = 1.0
-    for c in confidences:
-        result *= 1.0 - max(0.0, min(1.0, c))
-    return round(1.0 - result, 6)
+    """Backward-compatible alias for noisy-or support aggregation."""
+    return aggregate_support(confidences, strategy="noisy_or")
+
+def aggregate_support(confidences: list[float], strategy: AggregationStrategy = "noisy_or") -> float:
+    """
+    Computes confidence as a monotonic aggregation over observable supporting evidence.
+
+    Properties:
+    - Monotonic: adding evidence never decreases confidence
+    - Non-linear: diminishing returns allowed
+    - Evidence-bound: no inference beyond observed support
+    """
+    if strategy == "noisy_or":
+        result = 1.0
+        for c in confidences:
+            result *= 1.0 - max(0.0, min(1.0, c))
+        return round(1.0 - result, 6)
+    
+    # Fallback/default placeholder
+    return 0.0
 
 
 def resolve_truth(
@@ -96,7 +117,7 @@ def resolve_truth(
     if not weighted_facts:
         return []
 
-    # Step 1 — compute raw noisy-OR per group, bucket by (entity, predicate)
+    # Step 1 — compute raw aggregate support per group, bucket by (entity, predicate)
     # Evidence is pre-fetched by weight_evidence; no DB query needed here.
     #
     # Groups with the same canonical_value are merged into a single candidate.
@@ -113,7 +134,7 @@ def resolve_truth(
         # Deduplicate before aggregation — preserves all items with selected/reason flags
         deduped = _dedup_evidence(evidence)
         selected_scores = [ev["score"] for ev in deduped if ev["selected"]]
-        raw_confidence = noisy_or(selected_scores) if selected_scores else 0.0
+        raw_confidence = aggregate_support(selected_scores) if selected_scores else 0.0
 
         key = (entity, predicate)
         if key not in by_predicate:
@@ -134,7 +155,7 @@ def resolve_truth(
             }
         else:
             # Merge into existing canonical group — accumulate evidence and
-            # re-compute noisy-OR over the combined selected scores.
+            # re-compute aggregated support over the combined selected scores.
             existing = by_predicate[key][canonical_value]
             merged_evidence = _dedup_evidence(existing["evidence"] + deduped)
             merged_selected = [ev["score"] for ev in merged_evidence if ev["selected"]]
@@ -144,7 +165,7 @@ def resolve_truth(
 
             by_predicate[key][canonical_value] = {
                 "canonical_value": canonical_value,
-                "raw_confidence": noisy_or(merged_selected) if merged_selected else 0.0,
+                "raw_confidence": aggregate_support(merged_selected) if merged_selected else 0.0,
                 "evidence": merged_evidence,
                 "surface_forms": surface_forms,
             }
@@ -155,10 +176,26 @@ def resolve_truth(
         candidates = list(canonical_groups.values())
         num_values = len(candidates)
         has_contradictions = num_values > 1
-        penalty = 1.0 / num_values if has_contradictions else 1.0
+
+        # Weighted contradiction penalty (unified inference-engine semantics):
+        # each candidate keeps a share of its confidence proportional to its
+        # own support relative to all competing values — NOT the legacy flat
+        # 1/num_values. A weakly supported dissenter barely dents a
+        # well-supported fact; an even split still halves confidence.
+        total_support = sum(c["raw_confidence"] for c in candidates)
 
         scored = []
         for c in candidates:
+            if has_contradictions and total_support > 0:
+                if num_values == 2:
+                    penalty = c["raw_confidence"] / total_support
+                else:
+                    competing = [other["raw_confidence"] for other in candidates if other is not c]
+                    competing_support = aggregate_support(competing, strategy="noisy_or")
+                    effective_total = c["raw_confidence"] + competing_support
+                    penalty = c["raw_confidence"] / effective_total if effective_total > 0 else 1.0
+            else:
+                penalty = 1.0
             # Elect representative surface form: highest cumulative selected score.
             # Tiebreaker: value string ASC (deterministic, ingestion-order-independent).
             representative = sorted(
@@ -170,6 +207,7 @@ def resolve_truth(
                     "value": representative,
                     "canonical_value": c["canonical_value"],
                     "confidence": round(c["raw_confidence"] * penalty, 6),
+                    "penalty": round(penalty, 6),
                     "evidence": c["evidence"],
                 }
             )
@@ -187,7 +225,7 @@ def resolve_truth(
                 "canonical_value": best["canonical_value"],
                 "confidence": best["confidence"],
                 "confidence_explanation": _build_explanation(
-                    best["evidence"], penalty, num_values
+                    best["evidence"], best["penalty"], num_values
                 ),
                 "contradictions": [
                     {

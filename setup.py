@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="claim-layer",
-    version="0.3.0",
+    version="2.0.0",
     description="Compute truth from evidence, not text",
     package_dir={"": "src"},
     packages=find_packages(where="src"),

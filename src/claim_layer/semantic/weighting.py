@@ -13,6 +13,16 @@ def weight_evidence(
     grouped_facts: list[dict[str, Any]],
     hits: list[tuple[int, float]],
 ) -> list[dict[str, Any]]:
+    """
+    Evidence may be weighted by recency according to policy.
+    Recency is policy-dependent, not universal.
+
+    Temporal weighting:
+    - must be explicit
+    - must be auditable
+    - must not discard older evidence
+    - may affect ranking and/or support aggregation depending on policy
+    """
     if not grouped_facts:
         return []
 
