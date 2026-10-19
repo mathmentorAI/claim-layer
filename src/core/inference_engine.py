@@ -400,6 +400,23 @@ def resolve_claims_detailed(
                 },
             }
 
+    # Invalid proofs cannot contribute support or opposition, even when callers
+    # use the resolver without the optional post-resolution grounding gate.
+    invalid_proofs = {
+        item["claim_id"] for item in audit_trace
+        if item.get("derivation_status") == "unverified"
+    }
+    rejected_derivations = [
+        c for c in active
+        if (c.premises or c.derivation_rule) and c.id in invalid_proofs
+    ]
+    active = [c for c in active if c not in rejected_derivations]
+    if not active:
+        return {
+            "result": Result(None, 0.0, [], [], reason=Reason.BLOCKED_INFERENCE),
+            "trace": {"groups": [], "inactive_claims": inactive, "epistemic_audit": audit_trace},
+        }
+
     # Step 2 — group by canonical value
     groups: Dict[Any, List[Claim]] = {}
     for claim in active:
@@ -449,45 +466,50 @@ def resolve_claims_detailed(
     winner = group_traces[0]
     losers = group_traces[1:]
 
-    # Step 5 — weighted contradiction penalty with origin precedence attenuation & Section 5.2/5.3 Q_g
-    total_support = sum(g["weighted_support"] for g in group_traces)
-    legacy_penalty = 1.0 / len(group_traces) if losers else 1.0
-
-    # Filter insignificant noise below threshold if explicitly configured
-    active_losers = [
-        g for g in losers if g["weighted_support"] >= noise_threshold
-    ] if noise_threshold > 0.0 else losers
-
+    # Step 5 — only proven incompatibilities contribute opposing support.
+    # Preserve compatible and unknown alternatives separately for callers.
     winner_origin_rank = winner["origin_rank"]
-    effective_losers_support = [
-        g["weighted_support"] * (min(1.0, g["origin_rank"] / winner_origin_rank) if winner_origin_rank > 0 else 1.0)
-        for g in active_losers
-    ]
-
-    # Section 4.2 & 5.2: Three-valued comparison & opposing support by dependence group (o_{g,d} = max_{u_i in d cap h} a_i)
     winner_rep_claim = max(winner["selected"], key=lambda c: c.confidence)
     opp_by_dep: Dict[str, float] = {}
     unresolved_comparisons: List[Dict[str, Any]] = []
-    for g in active_losers:
-        attenuation = (min(1.0, g["origin_rank"] / winner_origin_rank) if winner_origin_rank > 0 else 1.0)
+    compatible_values: List[Dict[str, Any]] = []
+    contradictions: List[Claim] = []
+    effective_losers_support: List[float] = []
+    raw_opposing_support: List[float] = []
+    for g in losers:
+        attenuation = min(1.0, g["origin_rank"] / winner_origin_rank) if winner_origin_rank > 0 else 1.0
+        group_opposition: Dict[str, float] = {}
         for c in g["claims"]:
             cmp_state = compare_claims_three_valued(winner_rep_claim, c)
-            if cmp_state == "unknown":
-                unresolved_comparisons.append({
-                    "claim_id": c.id,
-                    "value": c.value,
-                    "comparison": "unknown",
-                })
+            if cmp_state != "incompatible":
+                entry = {
+                    "claim_id": c.id, "value": c.value, "comparison": cmp_state,
+                    "confidence": c.confidence,
+                    "source": {"document_id": c.source.document_id,
+                               "page": c.source.page, "paragraph_id": c.source.paragraph_id},
+                }
+                (compatible_values if cmp_state == "compatible" else unresolved_comparisons).append(entry)
+                continue
+            contradictions.append(c)
             dep_d = _dependence_key(c)
-            c_score = round(c.confidence * _weight_for(c, inference_profile) * attenuation, 6)
-            if c_score > opp_by_dep.get(dep_d, 0.0):
-                opp_by_dep[dep_d] = c_score
+            c_score = round(c.confidence * _weight_for(c, inference_profile), 6)
+            group_opposition[dep_d] = max(group_opposition.get(dep_d, 0.0), c_score)
+        support = _noisy_or(list(group_opposition.values()))
+        if not group_opposition or support < noise_threshold:
+            continue
+        raw_opposing_support.append(support)
+        effective_losers_support.append(support * attenuation)
+        for dep_d, c_score in group_opposition.items():
+            opp_by_dep[dep_d] = max(opp_by_dep.get(dep_d, 0.0), c_score * attenuation)
+
+    total_support = winner["weighted_support"] + sum(raw_opposing_support)
+    legacy_penalty = 1.0 / (1 + len(raw_opposing_support))
 
     sg_index = winner["weighted_support"]
     og_index = _noisy_or(list(opp_by_dep.values())) if opp_by_dep else 0.0
     qg_index = compute_bounded_conflict_index(sg_index, og_index)
 
-    if not active_losers or total_support <= 0:
+    if not effective_losers_support or total_support <= 0:
         penalty = 1.0
         competing_support = 0.0
     elif penalty_strategy == "paper_qg":
@@ -497,7 +519,7 @@ def resolve_claims_detailed(
     elif penalty_strategy == "legacy_linear":
         penalty = winner["weighted_support"] / total_support
         competing_support = total_support - winner["weighted_support"]
-    elif len(group_traces) == 2 and noise_threshold == 0.0:
+    elif len(effective_losers_support) == 1 and noise_threshold == 0.0:
         # Canonical binary dispute: preserves exact contract for 2-group disputes
         competing_support = effective_losers_support[0] if effective_losers_support else 0.0
         effective_total = winner["weighted_support"] + competing_support
@@ -523,8 +545,7 @@ def resolve_claims_detailed(
     # representative surface form: highest-confidence selected claim in winner
     representative = winner_rep_claim.value
 
-    contradictions = [c for g in losers for c in g["claims"]]
-    reason = Reason.CONTRADICTION if losers else Reason.RESOLVED
+    reason = Reason.CONTRADICTION if contradictions else Reason.RESOLVED
 
     from core.epistemic_certificate import (
         compute_subjective_opinion,
@@ -559,6 +580,7 @@ def resolve_claims_detailed(
             "dependence_groups": winner.get("dependence_groups", []),
             "opposing_dependence_groups": sorted(list(opp_by_dep.keys())),
             "unresolved_comparisons": unresolved_comparisons,
+            "compatible_values": compatible_values,
         },
     )
 
@@ -576,6 +598,7 @@ def resolve_claims_detailed(
         "Og": og_index,
         "Qg": qg_index,
         "unresolved_comparisons": unresolved_comparisons,
+        "compatible_values": compatible_values,
         "penalty_strategy": penalty_strategy,
         "dynamic_range_healthy": bool(confidence >= 0.15) if active else False,
         "legacy_penalty_1_over_n": round(legacy_penalty, 6),

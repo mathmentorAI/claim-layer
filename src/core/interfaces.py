@@ -308,6 +308,8 @@ class Claim:
     unit: Optional[str] = None
     speaker_role: Optional[str] = None
     dependence_group: Optional[str] = None
+    # Identifies a checker installed by the application, never executable input.
+    derivation_rule: Optional[str] = None
 
 
 @dataclass

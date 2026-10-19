@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
+
+from core.derivation_rules import BUILTIN_RULES, RuleChecker
 
 from core.interfaces import (
     BLOCKED_INFERENCE_TYPES,
@@ -136,8 +138,10 @@ class EpistemicJudge:
     premise verification, allegation attribution detection, and epistemic closure.
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, rule_checkers: Optional[Mapping[str, RuleChecker]] = None) -> None:
+        self._rule_checkers = dict(BUILTIN_RULES)
+        if rule_checkers:
+            self._rule_checkers.update(rule_checkers)
 
     def _has_premise_cycle(
         self,
@@ -271,9 +275,14 @@ class EpistemicJudge:
                 derivation_status="unverified",
             )
 
-        if declared_premises and verified_premise_ids is not None:
-            missing_premises = [p for p in declared_premises if p not in verified_premise_ids]
-            if missing_premises and orig_type == "deductive":
+        if declared_premises:
+            missing_premises = [
+                p for p in declared_premises
+                if p not in (verified_premise_ids or set())
+                or p not in (premise_lookup or {})
+                or premise_lookup[p].id != p
+            ]
+            if missing_premises:
                 return EpistemicAuditResult(
                     claim_id=claim.id,
                     original_type=orig_type,
@@ -311,6 +320,42 @@ class EpistemicJudge:
                     override_reason=reason_detail,
                     derivation_status="unverified" if downgraded_type in BLOCKED_INFERENCE_TYPES else "hypothesis",
                 )
+
+        # A verified ID establishes provenance, not implication. Recheck every
+        # ancestor, then validate the conclusion using trusted rule code.
+        rule_error = None
+        if declared_premises:
+            for pid in declared_premises:
+                premise_audit = self.audit_claim(
+                    premise_lookup[pid],
+                    verified_premise_ids=verified_premise_ids,
+                    premise_lookup=premise_lookup,
+                )
+                if premise_audit.derivation_status not in {"source_supported", "rule_derived"}:
+                    rule_error = f"Premise '{pid}' has no verified derivation"
+                    break
+            checker = (
+                self._rule_checkers.get(claim.derivation_rule)
+                if isinstance(claim.derivation_rule, str) else None
+            )
+            if not rule_error and checker is None:
+                rule_error = "Missing or unknown derivation rule"
+            if not rule_error:
+                try:
+                    valid = checker(claim, tuple(premise_lookup[p] for p in declared_premises))
+                except Exception:
+                    valid = False
+                if valid is not True:
+                    rule_error = "Derivation rule does not justify the conclusion"
+        elif claim.derivation_rule:
+            rule_error = "Derivation rule requires explicit verified premises"
+
+        if rule_error:
+            return EpistemicAuditResult(
+                claim_id=claim.id, original_type=orig_type, audited_type="abductive",
+                is_overridden=True, override_reason=rule_error,
+                derivation_status="unverified",
+            )
 
         if orig_type in BLOCKED_INFERENCE_TYPES:
             status = "unverified"
@@ -422,13 +467,16 @@ class EpistemicJudge:
             if c.id and c.id not in effective_lookup:
                 effective_lookup[c.id] = c
 
-        for c in claims:
-            audit = self.audit_claim(
+        # Evaluate the same snapshot for every claim before applying overrides.
+        audits = [
+            self.audit_claim(
                 c,
                 verified_premise_ids=verified_premise_ids,
                 require_declared_premises=require_declared_premises,
                 premise_lookup=effective_lookup,
-            )
+            ) for c in claims
+        ]
+        for c, audit in zip(claims, audits):
             if audit.is_overridden:
                 c.inference_type = audit.audited_type
                 trace.append({
@@ -437,6 +485,7 @@ class EpistemicJudge:
                     "original": audit.original_type,
                     "audited": audit.audited_type,
                     "reason": audit.override_reason,
+                    "derivation_status": audit.derivation_status,
                 })
             sanitized.append(c)
 
