@@ -1,4 +1,4 @@
-# Guarantees v0.3 — see docs/guarantees.md
+# Guarantees v2.0.1 — see docs/guarantees.md
 #
 # CRITICAL: These tests encode the system guarantees defined in docs/guarantees.md
 # and described in docs/architecture.md — "System Guarantees" section.
@@ -444,3 +444,19 @@ def test_guarantee_no_hallucination():
             assert r["value"] in ingested_values
             for c in r["contradictions"]:
                 assert c["value"] in ingested_values
+
+
+@pytest.mark.parametrize("predicate,field", [("location", "compatible_values"), ("general", "unresolved_comparisons")])
+def test_guarantee_nonconflicting_alternatives_do_not_reduce_support(tmp_path, predicate, field):
+    store = _make_store(tmp_path, [
+        ("Madrid office", .9, "Acme", predicate, "Madrid"),
+        ("Barcelona office", .8, "Acme", predicate, "Barcelona"),
+    ])
+    grouped = [
+        {"entity": "Acme", "predicate": predicate, "value": "Madrid", "supporting_claim_ids": [1]},
+        {"entity": "Acme", "predicate": predicate, "value": "Barcelona", "supporting_claim_ids": [2]},
+    ]
+    result = resolve_truth(store, weight_evidence(store, grouped, [(1, 1.0), (2, 1.0)]))[0]
+    assert result["contradictions"] == []
+    assert result["confidence"] == .9
+    assert result[field][0]["value"] == "Barcelona"

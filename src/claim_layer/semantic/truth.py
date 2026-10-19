@@ -175,7 +175,12 @@ def resolve_truth(
     for (entity, predicate), canonical_groups in by_predicate.items():
         candidates = list(canonical_groups.values())
         num_values = len(candidates)
-        has_contradictions = num_values > 1
+        # The store lacks scope metadata; the public facade refines this with
+        # the full claims. Predicate cardinality alone can already rule out
+        # false contradictions for multivalued and catch-all predicates.
+        from core.inference_engine import is_functional_predicate
+        functional = is_functional_predicate(predicate)
+        has_contradictions = num_values > 1 and functional is True
 
         # Weighted contradiction penalty (unified inference-engine semantics):
         # each candidate keeps a share of its confidence proportional to its
@@ -225,7 +230,7 @@ def resolve_truth(
                 "canonical_value": best["canonical_value"],
                 "confidence": best["confidence"],
                 "confidence_explanation": _build_explanation(
-                    best["evidence"], best["penalty"], num_values
+                    best["evidence"], best["penalty"], num_values if has_contradictions else 1
                 ),
                 "contradictions": [
                     {
@@ -233,8 +238,10 @@ def resolve_truth(
                         "canonical_value": alt["canonical_value"],
                         "confidence": alt["confidence"],
                     }
-                    for alt in others
+                    for alt in others if has_contradictions
                 ],
+                "compatible_values": [dict(alt) for alt in others if functional is False],
+                "unresolved_comparisons": [dict(alt, comparison="unknown") for alt in others if functional is None],
                 "supporting_evidence": best["evidence"],
                 "alternative_evidence": [
                     {

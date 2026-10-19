@@ -31,11 +31,11 @@ The selected value for a given `(entity, predicate)` pair after aggregating all 
 
 ## System Guarantees
 
-These properties hold for all outputs produced by the system, unconditionally:
+These storage-resolution properties apply under the documented extraction, normalization, and trust assumptions. See [v2.0.1 evidence contracts](evidence_contracts.md) for the typed core and public facade:
 
 - **Deterministic output.** Identical inputs and DB state always produce identical outputs. No randomness is introduced at any stage.
 - **Evidence-backed values.** Every resolved truth value is supported by at least one explicit evidence item with a traceable `claim_id`.
-- **Contradictions are always surfaced.** When competing values exist for the same `(entity, predicate)`, all alternatives are returned in `contradictions` and `alternative_evidence`. No conflict is silently resolved.
+- **Contradictions are always surfaced.** Incompatible values are returned in `contradictions`; compatible and unknown alternatives are retained separately without a conflict penalty. The SQLite resolver applies cardinality; the public facade also checks scope and attribution. `alternative_evidence` preserves stored alternatives.
 - **Confidence reflects aggregated evidence.** The `confidence` field in the output is derived from `noisy_or` over stored claim confidences and a contradiction penalty. It is not a model output, a guess, or a generated score.
 - **No generative step in truth resolution.** The system contains no LLM or generative component in the resolution pipeline. There is no hallucination risk in the output values — every value originates from an ingested document.
 - **Full evidence trace.** For every resolved truth, the output includes `supporting_evidence` (claims backing the selected value) and `alternative_evidence` (claims backing each competing value), with per-claim scores.

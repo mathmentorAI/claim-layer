@@ -4,7 +4,7 @@
 
 **Deterministic truth engine for reasoning over unstructured data.**
 
-ClaimLayer is the open-source implementation of the **Evidence Intelligence** paradigm:
+ClaimLayer is a source-available implementation of the **Evidence Intelligence** paradigm, licensed under the conditions in [LICENSE](./LICENSE):
 a computational layer that transforms unstructured text into **structured, auditable, and contradiction-aware knowledge**.
 
 ---
@@ -59,8 +59,17 @@ Where:
 ## Installation
 
 ```bash
-pip install claimlayer
+python -m pip install "claim-layer @ git+https://github.com/mathmentorAI/claim-layer.git@v2.0.1"
 ```
+
+The distribution name is `claim-layer`; the Python import is `claimlayer`.
+This command installs the tagged GitHub release and requires Git. A PyPI
+release is not currently provided. For local development, clone the repository
+and run `python -m pip install '.[dev]'` from its root.
+
+Version 2.0.1 rejects unchecked derivations and separates compatible or unknown
+alternatives from contradictions. See the [release notes](./CHANGELOG.md) and
+[evidence contracts](./docs/evidence_contracts.md) for migration details.
 
 ---
 

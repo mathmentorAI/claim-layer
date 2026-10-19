@@ -1459,17 +1459,14 @@ class TestSprint8BeyondSOTAEpistemicFrontier:
             ]
         )
 
-        # Verification 1: Unaudited MANAGEMENT_PROJECTION was blocked at ingestion
-        assert len(cl.rejected_claims) == 1
-        assert cl.rejected_claims[0]["id"] == "mgmt_1"
+        # Verification 1: Both the projection and an unchecked implication are
+        # blocked at ingestion. Premise IDs alone cannot authorize an exemption.
+        assert {c["id"] for c in cl.rejected_claims} == {"mgmt_1", "dictamen_exencion"}
 
-        # Verification 2: JTMS Undercutting Defeater retracted `dictamen_exencion` because `cert_2022` expired
+        # Verification 2: The unproved exemption never enters the verified ledger.
         ans_exencion = cl.ask("¿Cuál es la exencion_regulatoria de Grupo_Vertice?")
         assert ans_exencion["abstain"] is True
-        assert any(
-            rc["claim_id"] == "dictamen_exencion" and rc["reason"] == "undercut_by_retracted_premise"
-            for rc in ans_exencion.get("retracted_conclusions", [])
-        )
+        assert all(c.id != "dictamen_exencion" for c in cl.core_claims)
 
         # Verification 3: Allen's Interval Algebra resolves current margin (4.75%) with 0 contradictions,
         # and Time-Travel (`as_of`) resolves June 2023 margin (2.10%)
@@ -1700,8 +1697,8 @@ class TestSprint9RevisedPaperPropositionsAndWorkedExamples:
 
         # 2. Valid rule-derived conclusion
         derived_ok = Claim(
-            "der_1", "ACME", "capacity", "eligible", SourceRef("doc.pdf", 2, "p1"), 0.95,
-            premises=["leaf_1"], quote="Por tanto ACME es elegible.",
+            "der_1", "ACME", "status", "active", SourceRef("doc.pdf", 2, "p1"), 0.95,
+            premises=["leaf_1"], derivation_rule="identity", quote="ACME está activa.",
         )
         a_der = judge.audit_claim(derived_ok, verified_premise_ids={"leaf_1"}, premise_lookup={"leaf_1": leaf})
         assert a_der.derivation_status == "rule_derived"

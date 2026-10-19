@@ -1,6 +1,6 @@
 # Evidence Intelligence — System Guarantees
 
-**Version:** v0.3
+**Version:** v2.0.1
 **Enforced by:** `tests/invariants/test_system_guarantees.py`
 **Defined in:** `docs/architecture.md` — "System Guarantees" section
 
@@ -15,7 +15,18 @@ Given the same query, store state, and pipeline inputs, the system always produc
 Every resolved truth value in the output is backed by at least one `supporting_evidence` entry with a traceable `claim_id` that exists in the database. The system never returns a value without a source.
 
 ### G3 — Contradictions are always surfaced, never hidden
-When multiple distinct **canonical values** exist for the same `(entity, predicate)`, all competing values appear in `contradictions` and `alternative_evidence`. No conflict is silently resolved or discarded.
+Distinct canonical values for a functional `(entity, predicate)` remain visible
+as contradictions when their scope and attribution are comparable. Multivalued
+predicates retain alternatives in `compatible_values`; catch-all predicates and
+unknown comparisons retain them in `unresolved_comparisons`. Neither category
+contributes opposing support. `alternative_evidence` continues to preserve the
+stored alternatives and their provenance.
+
+**Changed in v2.0.1:** Previously every distinct value was a contradiction, even
+when the comparator identified it as compatible or unknown. The SQLite resolver
+can apply only predicate cardinality; `ClaimLayer.ask()` additionally checks the
+full claim metadata. See [evidence contracts](evidence_contracts.md) for the core
+resolver, proof checks, and the limits of these conditional guarantees.
 
 **Canonical grouping (added in v0.3):** Values are normalized via `normalize_value()` before contradiction detection. Two raw values that produce the same `canonical_value` (e.g., `"30 days"` and `"thirty days"` both → `30`) are merged into a single candidate and do **not** appear as contradictions. Values that cannot be deterministically normalized (e.g., `"around 30 days"`) retain their original string as `canonical_value` and are treated as distinct candidates.
 
@@ -37,9 +48,15 @@ Evidence items within a fact group are deduplicated by source (`document_id`). W
 ```
 score             = confidence × similarity
 aggregated        = noisy_or([score for ev in evidence if ev.selected])
-penalty           = 1 / N  (where N = number of distinct values for the predicate)
+opposition        = support from incompatible alternatives only
+penalty           = aggregated / (aggregated + opposition), or 1 with no opposition
 final_confidence  = aggregated × penalty
 ```
+For the SQLite resolver, binary opposition is the other candidate's support;
+with more candidates it is their noisy-OR. The typed core also exposes explicit
+scoring strategies and dependence groups. v2.0.1 excludes compatible and unknown
+alternatives from these penalties. These indices are not calibrated probabilities.
+
 This value is fully derivable from the raw inputs. It is not a model output, a heuristic guess, or an opaque score. Duplicate evidence does NOT increase confidence.
 
 **Changed from v0.1:** Previously, all evidence items were passed to `noisy_or` regardless of source, causing confidence inflation when the same fact appeared multiple times from the same document.

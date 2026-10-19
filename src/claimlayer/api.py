@@ -613,6 +613,7 @@ class ClaimLayer:
                     item.origin_tier or (item.source.origin_tier if item.source else None)
                 ),
                 "premises": list(item.premises) if item.premises else [],
+                "derivation_rule": item.derivation_rule,
                 "require_explicit_premises": bool(item.premises),
             }
             return [ext], [meta]
@@ -693,6 +694,7 @@ class ClaimLayer:
                 ),
                 "origin_tier": origin_tier,
                 "premises": list(premises) if premises is not None else [],
+                "derivation_rule": item.get("derivation_rule"),
                 "require_explicit_premises": bool(
                     item.get("require_explicit_premises", False) or ("premises" in item)
                 ),
@@ -776,7 +778,14 @@ class ClaimLayer:
             }
 
         if consolidate and len(batch_extracted) > 1:
-            batch_extracted = self._consolidator.consolidate(batch_extracted)
+            # Proof-bearing records must be audited individually. Merging one
+            # into a source claim would discard its rule/premise obligations.
+            derived = [
+                c for c in batch_extracted
+                if c._meta.get("premises") or c._meta.get("derivation_rule")
+            ]
+            sources = [c for c in batch_extracted if c not in derived]
+            batch_extracted = self._consolidator.consolidate(sources) + derived
 
         original_embed = _emb_module.embed
         _emb_module.embed = self._provider.embed
@@ -816,6 +825,7 @@ class ClaimLayer:
                     valid_from=ext.valid_from,
                     valid_until=ext.valid_until,
                     premises=premises,
+                    derivation_rule=meta.get("derivation_rule"),
                     origin_tier=origin_tier,
                     quote=ext.quote,
                     instances=list(ext.instances) if ext.instances else [cid],
@@ -845,6 +855,8 @@ class ClaimLayer:
                         self.blocked_claims.append(
                             {
                                 "id": cid,
+                                "entity": core_claim.entity,
+                                "predicate": core_claim.predicate,
                                 "text": ext.quote,
                                 "original_type": audit_res.original_type,
                                 "audited_type": audit_res.audited_type,
@@ -975,7 +987,7 @@ class ClaimLayer:
         """
         from datetime import datetime, timezone
         from core.aggregation_engine import is_state_supersession
-        from core.inference_engine import _is_active, allen_interval_precedes
+        from core.inference_engine import _is_active, allen_interval_precedes, compare_claims_three_valued
 
         retracted: dict[str, dict[str, Any]] = {}
         now_dt = eval_time or datetime.now(timezone.utc)
@@ -1034,7 +1046,7 @@ class ClaimLayer:
                     continue
                 if get_origin_rank(c) < max_origin and any(
                     get_origin_rank(other) == max_origin
-                    and normalize_value(str(other.value)) != normalize_value(str(c.value))
+                    and compare_claims_three_valued(c, other) == "incompatible"
                     for other in ep_claims
                 ):
                     retracted[str(c.id)] = {
@@ -1089,6 +1101,20 @@ class ClaimLayer:
             for info in jtms_retracted.values()
             if info.get("reason") == "undercut_by_retracted_premise"
         ]
+
+        # An explicitly requested rejected proposition must not fall back to
+        # a similar but unrelated fact from the vector store.
+        query_words = query.lower().replace("_", " ")
+        for rejected in self.blocked_claims:
+            entity = str(rejected.get("entity") or "")
+            predicate = str(rejected.get("predicate") or "")
+            if (entity and predicate
+                    and entity.lower().replace("_", " ") in query_words
+                    and predicate.lower().replace("_", " ") in query_words
+                    and not self._find_core_claims(entity, predicate)):
+                return {"query": query, "results": [], "citations": [],
+                        "formatted_citations": "", "abstain": True,
+                        "reason": "blocked_inference"}
 
         base_response = _ask(
             self._store,
@@ -1273,6 +1299,39 @@ class ClaimLayer:
                             aggregate_support([c.confidence for c in top_tier_claims]), 6
                         )
                         val = top_val
+
+            # Refine value-only alternatives using scope and attribution.
+            from core.inference_engine import compare_claims_three_valued
+            winner_claims = self._find_core_claims(ent, pred, val)
+            if winner_claims:
+                rep = max(winner_claims, key=lambda c: c.confidence)
+                compatible, unresolved, incompatible_values = [], [], set()
+                for candidate in all_cand_claims:
+                    if str(candidate.id) in jtms_retracted or candidate in winner_claims:
+                        continue
+                    if effective_as_of is not None and not _is_active(candidate, effective_as_of)[0]:
+                        continue
+                    comparison = compare_claims_three_valued(rep, candidate)
+                    if comparison == "incompatible":
+                        incompatible_values.add(str(candidate.value))
+                        continue
+                    entry = {
+                        "claim_id": candidate.id, "value": candidate.value,
+                        "comparison": comparison, "confidence": candidate.confidence,
+                        "source": {"document_id": candidate.source.document_id,
+                                   "page": candidate.source.page,
+                                   "paragraph_id": candidate.source.paragraph_id},
+                    }
+                    (compatible if comparison == "compatible" else unresolved).append(entry)
+                res["compatible_values"] = compatible
+                res["unresolved_comparisons"] = unresolved
+                res["contradictions"] = [
+                    c for c in res.get("contradictions", [])
+                    if str(c.get("value")) in incompatible_values
+                ]
+                if not res["contradictions"]:
+                    explanation = res.get("confidence_explanation", {})
+                    explanation.update(penalty=1.0, penalty_reason="no incompatible alternatives")
 
             matched_claims = self._find_core_claims(ent, pred, val)
             winner_support = 0.0

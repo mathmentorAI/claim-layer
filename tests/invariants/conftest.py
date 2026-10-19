@@ -59,7 +59,7 @@ _GUARANTEE_MAP: dict[str, tuple[str, str, str]] = {
 _CONTRACT: dict[str, str] = {
     "G1": "output_a == output_b  (same inputs → same outputs, no randomness)",
     "G2": "∀ ev ∈ supporting_evidence: ev.claim_id ∈ DB",
-    "G3": "contradictions == all_canonical_values − {winner}  (no silent resolution)\n"
+    "G3": "contradictions == incompatible_canonical_values  (no silent resolution)\n"
           "  where canonical_value = normalize_value(raw_value)\n"
           "        equivalent surface forms share a canonical_value → merged, not contradicted\n"
           "        ambiguous values → canonical_value == raw_value → remain distinct",
@@ -67,7 +67,7 @@ _CONTRACT: dict[str, str] = {
           "  where  selected_scores = scores of non-redundant evidence only\n"
           "         score           = confidence × similarity\n"
           "         dedup key       = source (document_id) within fact group\n"
-          "         penalty         = 1 / N  (N = distinct values for predicate)",
+          "         penalty         = support / (support + incompatible opposition), or 1",
     "G5": "winner changes when similarity changes  (query drives resolution)",
     "G6": "∀ value ∈ output: value ∈ ingested_values  (no generated values)",
 }
