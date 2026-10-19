@@ -1,0 +1,20 @@
+PROPRIETARY & CONFIDENTIALITY NOTICE
+=====================================
+
+(c) Francisco Hernandez de Blas - Deltoryx / ClaimLayer. All rights reserved.
+
+This package contains the Evidence Intelligence / ClaimLayer Skill and is licensed
+under the Business Source License 1.1 (BSL 1.1).
+
+Evaluation & Research Grant:
+  - Free for non-production evaluation, local testing, proof-of-concept development,
+    and academic research.
+  - Production deployments (including internal operational workflows) require an
+    explicit commercial license from the Licensor.
+  - Building competing products in Evidence Intelligence, deterministic AI verification,
+    or automated RAG auditing is strictly prohibited.
+
+On 2030-03-31, this license automatically converts to the Mozilla Public License 2.0 (MPL 2.0).
+For complete terms, consult the root LICENSE file.
+
+Contact: Francisco Hernandez de Blas - francisco@deltoryx.com

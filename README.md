@@ -142,7 +142,7 @@ git clone https://github.com/mathmentorAI/claim-layer.git
 cd claim-layer
 
 # Run the full offline verification pipeline
-python skills/evidence-intelligence/examples/pipeline_completo.py --demo
+python skills/evidence-intelligence/examples/complete_pipeline.py --demo
 ```
 
 This runs an end-to-end verification showing:
@@ -157,7 +157,7 @@ This runs an end-to-end verification showing:
 ```bash
 pip install openai
 export OPENAI_API_KEY="your-api-key"
-python skills/evidence-intelligence/examples/pipeline_completo.py
+python skills/evidence-intelligence/examples/complete_pipeline.py
 ```
 
 ---
