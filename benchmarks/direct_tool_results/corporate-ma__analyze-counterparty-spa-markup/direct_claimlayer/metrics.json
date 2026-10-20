@@ -1,0 +1,61 @@
+{
+  "task_id": "corporate-ma/analyze-counterparty-spa-markup",
+  "arm": "direct_claimlayer",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 147263,
+  "output_tokens": 8478,
+  "total_tokens": 155741,
+  "wall_clock_seconds": 173.99,
+  "deliverable_chars": 30681,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "get_evidence_overview",
+      "args": {},
+      "output_chars": 52153
+    },
+    {
+      "round": 2,
+      "tool": "get_clause_diffs",
+      "args": {
+        "filter_query": "",
+        "limit": 50
+      },
+      "output_chars": 18572
+    },
+    {
+      "round": 3,
+      "tool": "get_clause_diffs",
+      "args": {
+        "offset": 30,
+        "limit": 50
+      },
+      "output_chars": 25255
+    },
+    {
+      "round": 4,
+      "tool": "get_clause_diffs",
+      "args": {
+        "offset": 60,
+        "limit": 50
+      },
+      "output_chars": 40993
+    },
+    {
+      "round": 5,
+      "tool": "get_clause_diffs",
+      "args": {
+        "offset": 90,
+        "limit": 50
+      },
+      "output_chars": 48263
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 30681
+    }
+  ]
+}

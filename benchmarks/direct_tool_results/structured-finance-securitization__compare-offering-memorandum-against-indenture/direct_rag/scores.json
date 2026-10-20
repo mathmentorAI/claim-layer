@@ -1,0 +1,248 @@
+{
+  "score": 0.0,
+  "max_score": 1.0,
+  "summary": "11/37 criteria passed.  Missed 26 \u2014 task FAIL.",
+  "all_pass": false,
+  "n_criteria": 37,
+  "n_passed": 11,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "ISSUE_001: Identifies Reserve Account waterfall position discrepancy",
+      "verdict": "pass",
+      "reasoning": "The report clearly identifies that the Indenture places Reserve Account replenishment at step 13 (after all principal payments) while the Offering Memorandum incorrectly places it at step 10 (between Class A-3 principal and Class B principal), satisfying the criterion for ISSUE_001."
+    },
+    {
+      "id": "C-002",
+      "title": "ISSUE_001: Explains impact of Reserve Account waterfall misplacement",
+      "verdict": "pass",
+      "reasoning": "The report explains that placing Reserve Account replenishment before Class B and C principal payments (as the OM states) would give the Reserve Account priority over those note classes, altering the credit enhancement structure and potentially affecting ratings. This is detailed in the 'Credit Enhancement Impact' and 'Ratings Analysis Impact' sections under Issue 1."
+    },
+    {
+      "id": "C-003",
+      "title": "ISSUE_001: Recommends conforming OM to Indenture for waterfall",
+      "verdict": "pass",
+      "reasoning": "The report explicitly recommends correcting the Offering Memorandum to conform to the Indenture's waterfall structure, specifically moving Reserve Account replenishment to step 13 (after all principal distributions to Classes A-1 through C) and updating related descriptions to reflect that replenishment is subordinated to all principal payments on the Notes."
+    },
+    {
+      "id": "C-004",
+      "title": "ISSUE_001: Rates waterfall discrepancy as Critical or high severity",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies the waterfall priority discrepancy as a material discrepancy with significant structural subordination, credit enhancement, ratings analysis, and financial impact implications. It is treated as a high-severity issue requiring immediate correction, satisfying the criterion for Critical or high severity."
+    },
+    {
+      "id": "C-005",
+      "title": "ISSUE_002: Identifies Defaulted Receivable definition mismatch (120 vs 90 days)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or identify any discrepancy regarding the definition of 'Defaulted Receivable' (120 vs 90 days) between the Indenture and Offering Memorandum. The report focuses on waterfall priority and Class C Note coupon rate inconsistencies only."
+    },
+    {
+      "id": "C-006",
+      "title": "ISSUE_002: Explains impact of default definition mismatch",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss any default definition mismatch (e.g., 120-vs-90-day discrepancy) or its impact on Annualized Default Rate or Trigger Events. The two issues covered are waterfall priority and coupon rate inconsistency, not default definitions."
+    },
+    {
+      "id": "C-007",
+      "title": "ISSUE_002: Notes Indenture controls for default definition",
+      "verdict": "fail",
+      "reasoning": "The report does not mention any default definition or 120-day definition issue, nor does it state that the Indenture's definition controls or recommend conforming the OM to the Indenture for default definition. The discrepancies discussed are about waterfall priority and coupon rate inconsistency, not default definition."
+    },
+    {
+      "id": "C-008",
+      "title": "ISSUE_003: Identifies clean-up call threshold reference amount error",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any discrepancy regarding the clean-up call threshold reference amount. The report discusses waterfall priority and Class C note coupon rate inconsistencies but does not mention the clean-up call threshold or compare 10% of Initial Pool Balance versus 10% of initial Note Balance."
+    },
+    {
+      "id": "C-009",
+      "title": "ISSUE_003: Quantifies dollar impact of clean-up call error",
+      "verdict": "fail",
+      "reasoning": "The report does not mention or quantify any clean-up call error or threshold difference between the Indenture and Offering Memorandum. The criterion requires quantification of a specific dollar impact related to a clean-up call error, which is absent from the output."
+    },
+    {
+      "id": "C-010",
+      "title": "ISSUE_004: Identifies Class C Note coupon rate discrepancy (6.75% vs 6.50%)",
+      "verdict": "pass",
+      "reasoning": "The report identifies that the Indenture specifies the Class C Note interest rate as 6.75%, the OM's Summary of Terms correctly states 6.75%, but the OM's 'Description of the Notes' section misstates the rate as 6.50%, satisfying the criterion for ISSUE_004."
+    },
+    {
+      "id": "C-011",
+      "title": "ISSUE_004: Notes internal OM inconsistency for Class C rate",
+      "verdict": "pass",
+      "reasoning": "The report explicitly notes an internal inconsistency within the Offering Memorandum: the Summary of Terms table states the Class C Note coupon as 6.75% per annum, while the Description of the Notes section incorrectly states it as 6.50% per annum. This satisfies the criterion for ISSUE_004."
+    },
+    {
+      "id": "C-012",
+      "title": "ISSUE_005: Identifies CNL Trigger Table discrepancy (6.00% vs 5.75%)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention any discrepancy regarding the Cumulative Net Loss Trigger Table or thresholds of 6.00% vs 5.75% for any period, including 'Jul 2027 and thereafter'. The report focuses on waterfall priority and Class C Note coupon rate inconsistencies only."
+    },
+    {
+      "id": "C-013",
+      "title": "ISSUE_005: Explains impact of CNL trigger discrepancy",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss any CNL trigger discrepancy or a 25 basis point difference between 6.00% and 5.75%. It addresses a Class C Note coupon rate inconsistency (6.75% vs 6.50%) and a waterfall priority discrepancy, but not the specific CNL trigger issue described in the criterion."
+    },
+    {
+      "id": "C-014",
+      "title": "ISSUE_006: Identifies Minimum OC Amount definition conflict (current vs initial pool balance)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any discrepancy regarding the Minimum OC Amount definition conflict between the Indenture (defining it as 1.50% of the current pool balance) and the Offering Memorandum (stating it as 1.50% of the initial pool balance). The report focuses on waterfall priority and Class C Note coupon rate inconsistencies but omits this specific issue."
+    },
+    {
+      "id": "C-015",
+      "title": "ISSUE_006: Explains structural impact of static vs dynamic OC floor",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss static vs dynamic OC floor or explain the structural impact of using initial pool balance versus current pool balance for Minimum OC Amount calculations. The criterion is not addressed."
+    },
+    {
+      "id": "C-016",
+      "title": "ISSUE_007: Identifies Reserve Account Required Balance floor omission",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any omission regarding the Reserve Account Required Balance floor. It discusses discrepancies in waterfall priority and Class C Note coupon rate, but does not mention the Reserve Account Required Balance being defined as the greater of 1.00% of current outstanding note balance and 0.50% of initial outstanding note balance ($3,437,500) in the Indenture, nor does it note that the OM omits this floor by describing it only as 1.00% of the then-current outstanding note balance."
+    },
+    {
+      "id": "C-017",
+      "title": "ISSUE_007: Explains consequence of missing Reserve Account floor",
+      "verdict": "fail",
+      "reasoning": "The report does not mention a Reserve Account floor, a $3,437,500 threshold, or the consequence of the Reserve Account declining below that amount as notes amortize under the Offering Memorandum's description. Therefore, it does not explain the consequence of missing the Reserve Account floor as required by criterion ISSUE_007."
+    },
+    {
+      "id": "C-018",
+      "title": "ISSUE_008: Identifies Business Day definition missing Wilmington, DE",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or identify any discrepancy regarding the Business Day definition, specifically the omission of Wilmington, DE in the Offering Memorandum's definition compared to the Indenture's definition that includes both New York, NY and Wilmington, DE."
+    },
+    {
+      "id": "C-019",
+      "title": "ISSUE_008: Notes relevance of Wilmington to Indenture Trustee",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention the Indenture Trustee's location in Wilmington, Delaware, nor does it discuss the relevance of Wilmington to the Business Day definition or payment processing on Delaware-specific holidays."
+    },
+    {
+      "id": "C-020",
+      "title": "ISSUE_009: Identifies servicing fee basis mismatch (pool balance vs note balance)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any servicing fee basis mismatch between pool balance and note balance. The discrepancies discussed are about waterfall priority for Reserve Account replenishment and Class C Note coupon rate inconsistency. No mention of servicing fee calculation basis is present in the report."
+    },
+    {
+      "id": "C-021",
+      "title": "ISSUE_009: Quantifies servicing fee basis impact",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not quantify or explain the servicing fee basis impact related to the pool balance exceeding the note balance, nor does it mention any dollar amount such as $2,067 per month or $24,800 per year less in servicing fees. The criterion ISSUE_009 is not addressed in the report."
+    },
+    {
+      "id": "C-022",
+      "title": "ISSUE_010: Identifies back-up servicer omission from OM",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention any back-up servicer omission. It discusses waterfall priority and coupon rate inconsistencies, but fails to identify that the Indenture names Granite Loan Servicing LLC as back-up servicer with a $5,000 monthly fee while the Offering Memorandum omits this information."
+    },
+    {
+      "id": "C-023",
+      "title": "ISSUE_010: Notes investor materiality of back-up servicer info",
+      "verdict": "fail",
+      "reasoning": "The report does not mention a back-up servicer or discuss its materiality to investors for servicing continuity risk."
+    },
+    {
+      "id": "C-024",
+      "title": "ISSUE_011: Identifies max original term rep discrepancy (75 vs 72 months)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention any discrepancy regarding the maximum original term of receivables (75 vs 72 months) in the representations and warranties section. The report focuses on waterfall priority and Class C note coupon rate inconsistencies, but does not address the specific term discrepancy required by the criterion."
+    },
+    {
+      "id": "C-025",
+      "title": "ISSUE_011: Explains repurchase obligation risk from term rep mismatch",
+      "verdict": "fail",
+      "reasoning": "The report does not mention any repurchase obligation risk arising from a term mismatch between the Offering Memorandum and Indenture, nor does it discuss a 3-month difference affecting receivables with original terms between 72 and 75 months. The discrepancies analyzed relate to waterfall priority and coupon rate inconsistency, not term representations or repurchase triggers."
+    },
+    {
+      "id": "C-026",
+      "title": "ISSUE_012: Identifies receivable count discrepancy (31,412 vs ~31,200)",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention any receivable count discrepancy between the Indenture and Offering Memorandum. The report focuses on waterfall priority and coupon rate inconsistencies but does not address receivable counts or identify a difference of 31,412 vs ~31,200 receivables."
+    },
+    {
+      "id": "C-027",
+      "title": "ISSUE_012: Quantifies principal balance impact of receivable count error",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention any receivable count error, a discrepancy of 212 receivables, an average balance of $22,676, or a resulting principal balance impact of approximately $4.8 million. The criterion ISSUE_012 is not addressed in the report."
+    },
+    {
+      "id": "C-028",
+      "title": "ISSUE_013: Identifies Rule 144A transfer restriction language deficiency",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any deficiency regarding Rule 144A transfer restriction language, specifically the omission of the requirement that the seller must reasonably believe the buyer is a QIB and take reasonable steps to ensure the buyer is aware the seller may be relying on Rule 144A, as required by Rule 144A(d)(4). The report focuses on waterfall priority and coupon rate inconsistencies but does not address transfer restriction provisions or Rule 144A compliance language."
+    },
+    {
+      "id": "C-029",
+      "title": "ISSUE_013: Notes placement agent liability exposure from Rule 144A gap",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention Rule 144A, placement agent liability, or securities law compliance concerns related to Ridgeline Capital Markets LLC. The report focuses on waterfall priority and coupon rate discrepancies without addressing the specified criterion."
+    },
+    {
+      "id": "C-030",
+      "title": "Report uses unique identifiers for each discrepancy",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not assign unique identifiers (e.g., DISC-001, DISC-002) to each discrepancy. The discrepancies are described in sections but lack a formal, sequential numbering system as required by the criterion."
+    },
+    {
+      "id": "C-031",
+      "title": "Report includes severity ratings for discrepancies",
+      "verdict": "fail",
+      "reasoning": "The report does not include severity ratings for the identified discrepancies. While it discusses material impacts, it does not assign a tiered severity rating (e.g., Critical/Major/Minor or High/Medium/Low) to either discrepancy as required by the criterion."
+    },
+    {
+      "id": "C-032",
+      "title": "Report includes recommended resolutions for each discrepancy",
+      "verdict": "pass",
+      "reasoning": "For each of the two identified discrepancies (Waterfall Priority Discrepancy and Class C Note Coupon Rate Inconsistency), the agent's output includes a clear 'Recommendation' section specifying corrective actions to resolve the issue."
+    },
+    {
+      "id": "C-033",
+      "title": "Report identifies Indenture as controlling document",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states that the Indenture governs as the operative document and that the Offering Memorandum should be corrected to conform to its provisions, satisfying the criterion."
+    },
+    {
+      "id": "C-034",
+      "title": "Report references both documents for each discrepancy",
+      "verdict": "pass",
+      "reasoning": "For each discrepancy, the report references specific provisions in both the Indenture and the Offering Memorandum. For the waterfall priority issue, it cites Indenture Article V, Section 5.01(a) (step Thirteenth) and the Offering Memorandum's 'Flow of Funds' section. For the Class C Note coupon rate inconsistency, it references Indenture Article II, Section 2.03 and the Offering Memorandum's 'Summary of Terms' table and 'Description of the Notes' section."
+    },
+    {
+      "id": "C-035",
+      "title": "Report correctly identifies transaction as CART 2024-2",
+      "verdict": "pass",
+      "reasoning": "The report consistently identifies the transaction as CART 2024-2 throughout the document, including in the title, executive summary, and all section headings, confirming it is the Crescent Auto Receivables Trust 2024-2 transaction."
+    },
+    {
+      "id": "C-036",
+      "title": "ISSUE_001: Correctly identifies which document has the error",
+      "verdict": "pass",
+      "reasoning": "The report clearly identifies that the Offering Memorandum contains the error regarding the Reserve Account waterfall position, stating it places replenishment at step 10 instead of the correct step 13 per the Indenture, and recommends correcting the OM to conform to the Indenture."
+    },
+    {
+      "id": "C-037",
+      "title": "ISSUE_005: Recommends conforming OM's CNL table to Indenture",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention the Cumulative Net Loss (CNL) table or recommend correcting it to match the Indenture's 6.00% threshold for the 'Jul 2027 and thereafter' period. The discrepancies addressed are related to waterfall priority and Class C Note coupon rate, not the CNL table."
+    }
+  ],
+  "run_id": "/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_rag",
+  "task": "structured-finance-securitization/compare-offering-memorandum-against-indenture",
+  "judge_model": "nvidia/nemotron-3-super-120b-a12b",
+  "scored_at": "2026-10-19T22:46:51.370647+00:00",
+  "cost": {
+    "input_tokens": 26167,
+    "output_tokens": 3846,
+    "wall_clock_seconds": 101.19
+  },
+  "doc_coverage": {
+    "documents_read": 0,
+    "total_documents": 0,
+    "documents_skipped": 0,
+    "documents_read_list": [],
+    "documents_skipped_list": []
+  }
+}

@@ -1,0 +1,9 @@
+Evaluating run '/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_claimlayer' on task 'structured-finance-securitization/compare-offering-memorandum-against-indenture'
+Judge model: nvidia/nemotron-3-super-120b-a12b
+
+  11/37 criteria passed.  Missed 26 — task FAIL.
+  Score:     0.00
+  Tokens: 65,953
+
+  Scores written to results//Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_claimlayer/scores.json
+  Report written to:  /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_claimlayer/report.html

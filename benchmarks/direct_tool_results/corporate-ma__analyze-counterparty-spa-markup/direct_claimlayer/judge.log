@@ -1,0 +1,9 @@
+Evaluating run '/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_claimlayer' on task 'corporate-ma/analyze-counterparty-spa-markup'
+Judge model: nvidia/nemotron-3-super-120b-a12b
+
+  32/62 criteria passed.  Missed 30 — task FAIL.
+  Score:     0.00
+  Tokens: 155,741
+
+  Scores written to results//Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_claimlayer/scores.json
+  Report written to:  /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_claimlayer/report.html

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent Evaluation — /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_rag</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         max-width: 960px; margin: 40px auto; padding: 0 24px;
+         color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .meta { color: #666; font-size: 0.85rem; margin-bottom: 32px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin-bottom: 40px; }
+  .stat { background: #f5f5f5; border-radius: 8px; padding: 16px; text-align: center; }
+  .stat .value { font-size: 2rem; font-weight: 700; }
+  .stat .label { font-size: 0.75rem; color: #666; text-transform: uppercase;
+                  letter-spacing: 0.05em; margin-top: 4px; }
+  h2 { font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px;
+        margin-top: 40px; }
+  details { border: 1px solid #e0e0e0; border-radius: 6px;
+             margin-bottom: 8px; overflow: hidden; }
+  details[open] { border-color: #b0b0b0; }
+  summary { padding: 12px 16px; cursor: pointer; list-style: none;
+             display: flex; align-items: center; gap: 10px;
+             background: #fafafa; user-select: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '▶'; font-size: 0.7rem; color: #999;
+                     transition: transform 0.15s; flex-shrink: 0; }
+  details[open] summary::before { transform: rotate(90deg); }
+  .inner { padding: 16px; background: white; border-top: 1px solid #e0e0e0; }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 8px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; flex-shrink: 0; }
+  .badge-found    { background: #d4edda; color: #155724; }
+  .badge-missed   { background: #f8d7da; color: #721c24; }
+  .badge-allpass  { background: #1a9850; color: #fff; font-size: 0.85rem; }
+  .badge-missed-any { background: #fdae61; color: #4a2a04; font-size: 0.85rem; }
+  .title { font-weight: 500; flex: 1; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-size: 0.75rem; font-weight: 600; color: #666;
+                  text-transform: uppercase; letter-spacing: 0.05em;
+                  margin-bottom: 2px; }
+  .reasoning { background: #f8f9fa; border-left: 3px solid #dee2e6;
+                padding: 10px 12px; font-size: 0.88rem; color: #444;
+                border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>Agent Evaluation Report</h1>
+<div class="meta">
+  Run: <strong>/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_rag</strong> &nbsp;&middot;&nbsp;
+  Task: corporate-ma/analyze-counterparty-spa-markup &nbsp;&middot;&nbsp;
+  Judge: nvidia/nemotron-3-super-120b-a12b &nbsp;&middot;&nbsp;
+  Scored: 2026-10-19
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="value">0.00</div><div class="label">Score</div></div>
+  <div class="stat"><div class="value">13/62</div><div class="label">Criteria Passed</div></div>
+  <div class="stat"><div class="value">0/0</div><div class="label">Doc Coverage</div></div>
+  <div class="stat">
+    <div class="value">
+      <span class="badge badge-missed-any">MISSED 49</span>
+    </div>
+    <div class="label">All-pass (every criterion)</div>
+  </div>
+</div>
+
+<h2>Criteria (13 passed, 49 failed)</h2>
+
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Identifies earnout introduction as new provision</span>
+    <span style="font-size:0.8rem;color:#999">C-001</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any earnout introduction in the seller's markup. The report states that no earnout was present in the original draft and lists earnout as a 'nice-to-have concession' that could be conceded up to 5% EV, but it does not identify a $10 million earnout being introduced by the seller or any reduction in guaranteed closing cash from $112M to $102M due to such an earnout.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Identifies $72M FY2026 Net Revenue earnout target</span>
+    <span style="font-size:0.8rem;color:#999">C-002</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention a $72M FY2026 Net Revenue earnout target. The earnout section only references a maximum of 5% EV ($6.375M) with approval, without specifying any FY2026 Net Revenue target or amount.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Notes earnout growth rate from FY2024 revenue</span>
+    <span style="font-size:0.8rem;color:#999">C-003</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention the $72M earnout target, FY2024 revenue of $64.2M, or a 12% growth rate calculation. The criterion requires explicit mention of this specific growth rate, which is absent from the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Flags 'commercially reasonable efforts' covenant as problematic</span>
+    <span style="font-size:0.8rem;color:#999">C-004</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention or flag the 'commercially reasonable efforts' covenant tied to the earnout as problematic or creating post-closing operational restrictions or potential disputes for the Buyer. The earnout is only referenced in Section 6.3 as a nice-to-have concession with no discussion of associated covenants.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Flags requirement to maintain separate books through Dec 31, 2027 as problematic</span>
+    <span style="font-size:0.8rem;color:#999">C-005</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or flag any requirement to maintain separate books through December 31, 2027, nor does it identify such a requirement as creating post-closing operational restrictions for the Buyer. The report focuses on other deviations but omits this specific issue entirely.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Notes conflict between earnout and Buyer's integration plans</span>
+    <span style="font-size:0.8rem;color:#999">C-006</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention Buyer's planned headcount reduction (45 positions) or integration plans, nor does it identify any conflict between such plans and earnout obligations or the commercially reasonable efforts covenant.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Notes earnouts disfavored per playbook</span>
+    <span style="font-size:0.8rem;color:#999">C-007</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report references the negotiation playbook's position on earnouts in section 6.3, stating: 'Earnout: None [Verify] Max 5% EV ($6.375M) with approval Nice-to-have Can concede ≤5% EV with restrictions', indicating that earnouts are disfavored per the playbook and require deal partner approval.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_001: Notes Buyer's revenue projection below earnout threshold</span>
+    <span style="font-size:0.8rem;color:#999">C-008</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention Buyer's base case FY2026 revenue projection of $69.5M or note that it is below the $72M earnout threshold. The criterion regarding revenue projection below earnout threshold is not addressed anywhere in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_002: Identifies NWC collar widened from $200K to $500K</span>
+    <span style="font-size:0.8rem;color:#999">C-009</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify that the Seller's markup widens the NWC collar from $200K to $500K. Instead, it states that no changes to NWC provisions were observed in the available chunks, and the original $200K collar (2.38% of NWC target) remains within the acceptable range (up to 3.0% or $252K). There is no mention of a $500K collar or any widening to that amount.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_002: Calculates $500K collar as percentage of NWC target</span>
+    <span style="font-size:0.8rem;color:#999">C-010</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not calculate or state that a $500K collar represents approximately 5.95% (or roughly 6%) of the $8.4M NWC target. It discusses the original $200K collar (2.38% of $8.4M) and mentions an acceptable threshold of up to $252K (3.0% of $8.4M), but never references a $500K collar or its percentage relative to the NWC target.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002: Notes $500K collar exceeds playbook 3% maximum</span>
+    <span style="font-size:0.8rem;color:#999">C-011</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report references the playbook's 3% maximum NWC collar tolerance in section 1.2, stating: 'NWC Collar: $200K (2.38% of NWC) original → $252K (3.0% of $8.4M NWC target) acceptable' and 'Walk-Away: Collar exceeding 3% of NWC target'. This shows the agent noted the playbook's 3% threshold and evaluated the collar against it.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002: Notes original $200K collar was within playbook limits</span>
+    <span style="font-size:0.8rem;color:#999">C-012</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report states: 'Based on available evidence, no changes to NWC provisions observed. The original 2.38% collar falls within the acceptable range (up to 3.0%).' This directly notes that the original $200K collar (2.38% of $8.4M) is within the playbook's 3% limit.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_003: Identifies general indemnity cap reduced from 10% to 7%</span>
+    <span style="font-size:0.8rem;color:#999">C-013</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify a reduction of the general indemnity cap from 10% to 7%. Instead, it states that no specific indemnity cap changes were identified in the available chunks and that the current 10% cap exceeds the minimum acceptable threshold of 8.5% EV. The report does not mention a 7% cap or the corresponding dollar amount of $8.925M.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_003: Identifies deductible basket increased from 0.75% to 1.25%</span>
+    <span style="font-size:0.8rem;color:#999">C-014</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify an increase in the deductible basket from 0.75% to 1.25% of equity value. Instead, it states that no specific basket changes were identified in the available chunks and that the current 0.75% EV tipping basket remains within the acceptable range (up to 1.0% EV if tipping). The 1.25% increase is not mentioned or detected.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_003: Identifies tipping basket changed to true deductible</span>
+    <span style="font-size:0.8rem;color:#999">C-015</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any change from a tipping basket to a true deductible. Instead, it states that no specific basket changes were identified and that the current tipping basket structure should be maintained, with no evidence of a structural change in basket type.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_004: Identifies holdback recharacterized as deferred consideration</span>
+    <span style="font-size:0.8rem;color:#999">C-016</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any recharacterization of the $15.5M holdback/escrow as 'deferred consideration' payable in two equal installments of $7.75M at 12 and 24 months post-closing. The holdback/escrow is discussed in sections 1.1 and 6.3, but no such recharacterization is mentioned.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_004: Flags loss of indemnification security/setoff rights</span>
+    <span style="font-size:0.8rem;color:#999">C-017</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss the recharacterization of holdback to deferred consideration or the loss of setoff rights as an indemnification security issue. While it mentions holdback/escrow in the nice-to-have concessions section and notes the importance of setoff rights in the negotiation strategy, it does not explicitly flag that the loss of setoff rights eliminates the buyer's primary security for indemnification claims or creates collection risk due to the need to pursue direct claims against sellers.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Identifies knowledge qualifier narrowed from 'actual knowledge after reasonable inquiry' to 'actual knowledge'</span>
+    <span style="font-size:0.8rem;color:#999">C-018</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any narrowing of the knowledge qualifier from 'actual knowledge after reasonable inquiry' to 'actual knowledge.' In section 2.3, it states: 'No deterioration to bare actual knowledge or reduction below 4-person group observed based on available evidence.' This indicates the agent did not find the claimed narrowing, so the criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Identifies knowledge group reduced from 4 to 2 persons</span>
+    <span style="font-size:0.8rem;color:#999">C-019</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any reduction in the knowledge group from four to two persons. While it discusses the knowledge qualifier and knowledge group in section 2.3, it states that 'No deterioration to bare actual knowledge or reduction below 4-person group observed based on available evidence' and recommends maintaining the current structure. There is no mention of the knowledge group being reduced to only Anand and Deshmukh, or the removal of Michael Huang and Sonia Patel.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Notes significance of excluding CFO and VP Engineering</span>
+    <span style="font-size:0.8rem;color:#999">C-020</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention the CFO or VP Engineering, nor does it discuss the significance of excluding these specific roles from the knowledge group. It only references a generic 4-person knowledge group without analyzing the practical impact of excluding CFO and VP Engineering.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006: Identifies HSR filing threshold error in original draft</span>
+    <span style="font-size:0.8rem;color:#999">C-021</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention HSR filing thresholds, the $119.5M threshold, or any error in the original draft regarding HSR clearance requirements. The criterion is not addressed.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006: Recommends HSR analysis or filing</span>
+    <span style="font-size:0.8rem;color:#999">C-022</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention HSR (Hart-Scott-Rodino) analysis, filing requirements, or the size-of-persons test anywhere in the document. There is no recommendation regarding HSR compliance.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007: Identifies reverse break-up fee introduction at $6.375M</span>
+    <span style="font-size:0.8rem;color:#999">C-023</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify that the Seller's markup introduces a reverse break-up fee of $6.375M. Instead, in section 6.3, it lists the reverse break-up fee as a 'Nice-to-Have Concession' that the buyer can concede (i.e., the buyer paying the seller), with a maximum of 3% EV ($3.825M), and notes that the original draft had no such provision. This describes a buyer-paid reverse break-up fee, not a seller-introduced one at 5% EV ($6.375M). The criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_007: Notes RBF exceeds playbook maximum of 3%</span>
+    <span style="font-size:0.8rem;color:#999">C-024</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report states in section 6.3 that a reverse break-up fee of 5% EV exceeds the playbook's maximum of 3% EV ($3.825M), noting it as a nice-to-have concession that can be traded for value elsewhere, which satisfies the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008: Identifies Section 338(h)(10) election prohibition</span>
+    <span style="font-size:0.8rem;color:#999">C-025</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any explicit prohibition on Section 338(h)(10) election in the seller's markup. While Section 7 mentions 'Prohibition of 338(h)(10) election without deal partner approval' as an escalation trigger not observed, this indicates the absence of such a prohibition, not its presence. The criterion requires identification of an added prohibition, which is not found in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008: Explains tax significance of 338(h)(10) prohibition</span>
+    <span style="font-size:0.8rem;color:#999">C-026</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report mentions the 338(h)(10) election prohibition in sections 7 and 8 but does not explain its tax significance (stepped-up basis, depreciation/amortization benefits) or quantify the potential tax benefits lost (estimated $8-12M present value).</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009: Identifies non-compete reduced from 3 years to 18 months</span>
+    <span style="font-size:0.8rem;color:#999">C-027</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify a reduction of the founder non-compete duration from 3 years to 18 months. Instead, it states that no reduction below 2 years duration was observed and that the current 3-year term exceeds requirements, with a suggestion to consider negotiating to 2 years in exchange for other concessions. There is no mention of the seller's markup reducing the non-compete to 18 months.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009: Identifies geographic scope narrowed to five states</span>
+    <span style="font-size:0.8rem;color:#999">C-028</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any narrowing of the non-compete geographic scope to five states (Illinois, California, New York, Texas, and Florida). Instead, it states that no state-limited geography was observed and that the nationwide scope remains acceptable per the playbook.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_009: Notes playbook requires minimum 2-year non-compete</span>
+    <span style="font-size:0.8rem;color:#999">C-029</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report references the playbook threshold for non-compete duration: 'Non-Compete Duration: 3 years original → 2 years (for sellers receiving >$20M) acceptable' and notes that founders receive >$20M each, so a 2-year term would be acceptable. It also states that the current 3-year term exceeds requirements, implying awareness of the 2-year minimum. The criterion is satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_009: Quantifies founder consideration exceeding $20M threshold</span>
+    <span style="font-size:0.8rem;color:#999">C-030</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explicitly quantifies founder consideration: Rajesh Anand receives $66.3M (52% of $127.5M) and Priya Deshmukh receives $35.7M (28% of $127.5M), both exceeding the $20M threshold, and references this in the non-compete analysis section.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010: Identifies dispute resolution changed to arbitration</span>
+    <span style="font-size:0.8rem;color:#999">C-031</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any change in dispute resolution to arbitration, nor does it mention AAA arbitration seated in Chicago. Section 7 discusses escalation triggers not observed, including 'Chicago arbitration without expanded discovery' as something not observed, implying no such change was found. The report fails to identify the required dispute resolution change.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010: Notes playbook preference for Delaware Chancery</span>
+    <span style="font-size:0.8rem;color:#999">C-032</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not reference the playbook's preference for litigation in Delaware Court of Chancery for M&A disputes. While it mentions Delaware governing law and forum selection, it does not specifically note the playbook's strong preference for Delaware Chancery Court.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010: Discusses disadvantages of arbitration vs. litigation</span>
+    <span style="font-size:0.8rem;color:#999">C-033</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss any specific disadvantages of arbitration compared to Delaware Chancery litigation, such as lack of appeal rights, limited discovery, or loss of access to Delaware M&A jurisprudence. While it mentions preferences for Delaware governing law and forum selection, it does not analyze or critique arbitration's disadvantages relative to litigation.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011: Identifies customer consent downgraded from closing condition to covenant</span>
+    <span style="font-size:0.8rem;color:#999">C-034</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not identify any downgrade of customer consent from a closing condition to a post-closing covenant, nor does it mention the three largest customers (Northland Health Systems, Greystone Financial Corp, Summit Logistics Group) or a change to 'reasonable best efforts.' The analysis of customer consent conditions in Section 4.1 states that no changes were observed and that the Orion Data Consortium License consent remains a closing condition, which is unrelated to the specific criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011: Quantifies revenue at risk from customer consent change</span>
+    <span style="font-size:0.8rem;color:#999">C-035</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not quantify the revenue at risk from customer consent change. It mentions the Orion Data Consortium License with a $3.4M annual fee but does not provide the combined ARR of $22.4M from three customers or the percentage of total revenue ($64.2M).</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012: Identifies drop-dead date shortened by 30 days</span>
+    <span style="font-size:0.8rem;color:#999">C-036</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any shortening of the drop-dead date from September 30, 2025 to August 31, 2025. Instead, it states that no acceleration of the drop-dead date beyond September 15, 2025 was observed, and the current September 30, 2025 drop-dead date is acceptable. There is no mention of a 30-day reduction to August 31, 2025.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012: Notes timing risk with HSR and/or reverse break-up fee</span>
+    <span style="font-size:0.8rem;color:#999">C-037</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss timing risk related to HSR filing requirements or the reverse break-up fee in connection with the shortened drop-dead date. While it notes the drop-dead date threshold (Sept 15, 2025 acceptable, earlier is walk-away), it does not analyze how a shortened timeline could create risk with HSR waiting periods or increase pressure related to the reverse break-up fee.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013: Flags GPLv3 open-source copyleft risk</span>
+    <span style="font-size:0.8rem;color:#999">C-038</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention any GPLv3-licensed open-source components, copyleft risks, or proprietary source code disclosure concerns related to ForgeIQ or any open-source software. The criterion is not addressed.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013: Recommends adding open-source representations or schedule</span>
+    <span style="font-size:0.8rem;color:#999">C-039</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention open-source representations, schedules, or any recommendation to add open-source components, license types, or integration methods to the SPA. There is no analysis or suggestion related to open-source software risks or protections.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014: Identifies data privacy rep qualified with materiality</span>
+    <span style="font-size:0.8rem;color:#999">C-040</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention data privacy representations, materiality qualifiers, or disclosure schedule references related to data security incidents. No analysis of this specific provision is present in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014: Connects data privacy change to September 2023 incident</span>
+    <span style="font-size:0.8rem;color:#999">C-041</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention any data privacy qualification, schedule deletion, or the September 2023 data security incident involving 14,000 PII records. There is no connection made between such a change and the known incident, nor any discussion of regulatory risk from undisclosed pre-closing incidents.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_015: Identifies R&W survival period reduced from 18 to 12 months</span>
+    <span style="font-size:0.8rem;color:#999">C-042</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify a reduction of the general R&W survival period from 18 to 12 months. Instead, it states that no reduction below 15 months was observed and that the current 18-month term exceeds the minimum acceptable threshold of 15 months per the playbook. There is no mention of a 12-month survival period in the seller's markup or any analysis of such a reduction.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_015: Notes playbook minimum survival period of 15 months</span>
+    <span style="font-size:0.8rem;color:#999">C-043</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention a proposed 12-month survival period. It states the original is 18 months and the playbook minimum is 15 months, but does not note that 12 months falls below the minimum.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags holdback recharacterization downplayed</span>
+    <span style="font-size:0.8rem;color:#999">C-044</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention or analyze any cover letter from the seller, nor does it flag any characterization of holdback recharacterization as a 'timing adjustment' or otherwise. The criterion specifically requires the report to note such a mischaracterization in the cover letter, which is absent from the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags customer consent change mischaracterized</span>
+    <span style="font-size:0.8rem;color:#999">C-045</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or flag any mischaracterization in the seller's cover letter regarding the customer consent closing condition being described as 'conforming the agreement to commercial reality.' The criterion specifically requires this to be noted for a pass, and since it is absent, the output fails.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags omission of knowledge qualifier narrowing</span>
+    <span style="font-size:0.8rem;color:#999">C-046</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention or flag any omission in the seller's cover letter regarding the knowledge qualifier. It only analyzes the markup's provisions and notes that no deterioration to the knowledge qualifier was observed based on available evidence, but it does not address whether the cover letter omitted mention of such narrowing.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags omission of R&W survival reduction</span>
+    <span style="font-size:0.8rem;color:#999">C-047</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or flag any omission in the seller's cover letter regarding the reduction of the general R&W survival period from 18 to 12 months. The criterion specifically requires the report to note this omission, which is absent from the analysis.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags 338(h)(10) prohibition described as 'standard'</span>
+    <span style="font-size:0.8rem;color:#999">C-048</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or flag any cover letter describing the Section 338(h)(10) prohibition as 'standard seller tax protection' or mischaracterizing it in any way. The criterion is not addressed in the report.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Risk severity: Earnout rated Critical or High</span>
+    <span style="font-size:0.8rem;color:#999">C-049</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not rate the earnout introduction (ISSUE_001) as Critical or High severity. In section 6.3, the earnout is classified as a 'Nice-to-have' concession with tradable value, indicating a Low or Medium severity, not Critical or High as required for a pass.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Risk severity: Holdback recharacterization rated Critical or High</span>
+    <span style="font-size:0.8rem;color:#999">C-050</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention ISSUE_004 or any holdback recharacterization, so it cannot be rated as Critical or High severity for that issue.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Risk severity: Indemnification changes rated Critical or High</span>
+    <span style="font-size:0.8rem;color:#999">C-051</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not rate the indemnification changes (cap reduction, basket increase, tipping-to-true-deductible conversion) as Critical or High severity. Instead, it classifies them as acceptable deviations within negotiation range, with no escalation required, indicating a Medium or Low severity assessment.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Risk severity: Customer consent downgrade rated Critical or High</span>
+    <span style="font-size:0.8rem;color:#999">C-052</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output identifies customer consent closing conditions, specifically the Orion Data Consortium License, as a must-have item and notes that failure to obtain consent creates material risk to the ForgeIQ platform viability. Given that 34.9% of revenue is at risk, this aligns with a Critical or High severity rating for the downgrade of customer consents as a closing condition (ISSUE_011).</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Response recommendation for earnout: Reject or Accept with Modification only</span>
+    <span style="font-size:0.8rem;color:#999">C-053</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report classifies earnout as a 'nice-to-have' concession and states it can be accepted only with restrictions (max 5% EV with approval), which aligns with accepting only with modification.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Response recommendation for earnout: Notes deal partner approval required per playbook</span>
+    <span style="font-size:0.8rem;color:#999">C-054</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report states in section 6.3: 'Earnout: None [Verify] Max 5% EV ($6.375M) with approval Nice-to-have Can concede ≤5% EV with restrictions', which explicitly notes that deal partner approval is required per the playbook for the earnout recommendation.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Response recommendation for holdback recharacterization</span>
+    <span style="font-size:0.8rem;color:#999">C-055</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report recommends retaining the holdback/escrow structure with setoff rights as a must-have (Priority 1) and identifies the holdback as a strong preference that can be modified only with economic offset, indicating rejection of elimination without alternative indemnification security.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Response recommendation for NWC collar</span>
+    <span style="font-size:0.8rem;color:#999">C-056</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention a $500K collar; it states the original NWC collar is $200K (2.38% of NWC target) and that the acceptable range per the playbook is up to $252K (3.0% of $8.4M NWC target). It recommends accepting the current NWC collar structure, which is within the threshold, and does not accept a $500K collar.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Response recommendation for non-compete</span>
+    <span style="font-size:0.8rem;color:#999">C-057</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report accepts the current 3-year non-compete duration as exceeding requirements and only suggests negotiating to 2 years in exchange for concessions, rather than rejecting the 18-month duration and proposing a minimum 2-year term as required. It does not address geographic scope narrowing in the context of an 18-month proposal.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Response recommendation for reverse break-up fee</span>
+    <span style="font-size:0.8rem;color:#999">C-058</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report states that a reverse break-up fee is a 'nice-to-have' concession and that the buyer can concede ≤3% EV ($3.825M) if unavoidable, which aligns with the playbook maximum. It does not accept a 5% fee without modification.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Correct equity value used throughout: $127.5M</span>
+    <span style="font-size:0.8rem;color:#999">C-059</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report consistently uses $127.5M as the equity value for percentage-based calculations, such as the indemnity cap (10% of EV = $12,750,000), deductible basket (0.75% EV = $956,250), and option pool dilution (1.2M shares × $12.75/share = ~$15.3M), confirming the correct equity value is applied throughout.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Correct consideration reconciliation for Seller's markup</span>
+    <span style="font-size:0.8rem;color:#999">C-060</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not state or imply the consideration structure under Seller's markup as $102M closing cash + $15.5M deferred consideration + $10M earnout = $127.5M. Instead, it references the original structure of $112M cash at closing + $15.5M holdback/escrow and notes no reduction in closing cash was observed, with no mention of an earnout or a $102M closing cash figure in the markup.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_015: Notes 12-month survival may miss first audit cycle</span>
+    <span style="font-size:0.8rem;color:#999">C-061</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not note that a 12-month R&W survival period may be insufficient due to breaches surfacing after the first audit cycle. While it discusses survival periods (e.g., recommending 15 months as acceptable and noting 18 months exceeds minimum), it does not raise the specific practical concern that 12 months may miss the first audit cycle for financial or tax representations.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Cover letter: Flags omission of NWC collar widening</span>
+    <span style="font-size:0.8rem;color:#999">C-062</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or flag any omission in the seller's cover letter regarding the NWC collar widening from $200K to $500K. The report discusses the NWC collar in Section 1.2 but does not reference a cover letter or note its omission of a widening to $500K.</div>
+    </div>
+  </div>
+</details>
+
+</body>
+</html>

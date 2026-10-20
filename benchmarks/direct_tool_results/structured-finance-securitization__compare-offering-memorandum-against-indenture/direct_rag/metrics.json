@@ -1,0 +1,63 @@
+{
+  "task_id": "structured-finance-securitization/compare-offering-memorandum-against-indenture",
+  "arm": "direct_rag",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 26167,
+  "output_tokens": 3846,
+  "total_tokens": 30013,
+  "wall_clock_seconds": 101.19,
+  "deliverable_chars": 15216,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "list_documents",
+      "args": {},
+      "output_chars": 366
+    },
+    {
+      "round": 2,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "associate-review-email.eml",
+        "start_chunk": 0,
+        "num_chunks": 7
+      },
+      "output_chars": 6700
+    },
+    {
+      "round": 3,
+      "tool": "search_chunks",
+      "args": {
+        "query": "Flow of Funds Reserve Account replenishment step 10 step 13"
+      },
+      "output_chars": 10810
+    },
+    {
+      "round": 4,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "cart-2024-2-indenture.docx",
+        "start_chunk": 51,
+        "num_chunks": 10
+      },
+      "output_chars": 6619
+    },
+    {
+      "round": 5,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "cart-2024-2-indenture.docx",
+        "start_chunk": 56,
+        "num_chunks": 5
+      },
+      "output_chars": 6631
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 15216
+    }
+  ]
+}

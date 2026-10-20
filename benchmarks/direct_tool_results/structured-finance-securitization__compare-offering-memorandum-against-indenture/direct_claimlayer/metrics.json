@@ -1,0 +1,58 @@
+{
+  "task_id": "structured-finance-securitization/compare-offering-memorandum-against-indenture",
+  "arm": "direct_claimlayer",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 62978,
+  "output_tokens": 2975,
+  "total_tokens": 65953,
+  "wall_clock_seconds": 76.13,
+  "deliverable_chars": 11133,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "get_evidence_overview",
+      "args": {},
+      "output_chars": 12984
+    },
+    {
+      "round": 2,
+      "tool": "get_clause_diffs",
+      "args": {
+        "filter_query": "waterfall"
+      },
+      "output_chars": 22415
+    },
+    {
+      "round": 3,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "Reserve Account replenishment waterfall step"
+      },
+      "output_chars": 8302
+    },
+    {
+      "round": 4,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "waterfall step 10 reserve account replenishment"
+      },
+      "output_chars": 8305
+    },
+    {
+      "round": 5,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "Flow of Funds waterfall step",
+        "filename_filter": "offering-memorandum"
+      },
+      "output_chars": 6583
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 11133
+    }
+  ]
+}

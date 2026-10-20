@@ -1,0 +1,9 @@
+Evaluating run '/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/litigation-dispute-resolution__analyze-counterparty-motion-to-dismiss/direct_rag' on task 'litigation-dispute-resolution/analyze-counterparty-motion-to-dismiss'
+Judge model: nvidia/nemotron-3-super-120b-a12b
+
+  26/34 criteria passed.  Missed 8 — task FAIL.
+  Score:     0.00
+  Tokens: 50,240
+
+  Scores written to results//Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/litigation-dispute-resolution__analyze-counterparty-motion-to-dismiss/direct_rag/scores.json
+  Report written to:  /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/litigation-dispute-resolution__analyze-counterparty-motion-to-dismiss/direct_rag/report.html

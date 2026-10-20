@@ -1,0 +1,9 @@
+Evaluating run '/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/banking-finance__analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet/direct_rag' on task 'banking-finance/analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet'
+Judge model: nvidia/nemotron-3-super-120b-a12b
+
+  23/66 criteria passed.  Missed 43 — task FAIL.
+  Score:     0.00
+  Tokens: 31,738
+
+  Scores written to results//Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/banking-finance__analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet/direct_rag/scores.json
+  Report written to:  /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/banking-finance__analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet/direct_rag/report.html

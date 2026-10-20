@@ -1,0 +1,59 @@
+{
+  "task_id": "litigation-dispute-resolution/analyze-counterparty-motion-to-dismiss",
+  "arm": "direct_claimlayer",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 261102,
+  "output_tokens": 7049,
+  "total_tokens": 268151,
+  "wall_clock_seconds": 153.69,
+  "deliverable_chars": 20197,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "get_evidence_overview",
+      "args": {},
+      "output_chars": 24776
+    },
+    {
+      "round": 2,
+      "tool": "get_clause_diffs",
+      "args": {
+        "filter_query": "",
+        "offset": 0,
+        "limit": 50
+      },
+      "output_chars": 211522
+    },
+    {
+      "round": 3,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "Section 14.2 forum selection"
+      },
+      "output_chars": 8247
+    },
+    {
+      "round": 4,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "Section 11.1 limitation of liability"
+      },
+      "output_chars": 8900
+    },
+    {
+      "round": 5,
+      "tool": "query_claims_and_provisions",
+      "args": {
+        "query": "Section 9.4 claims period"
+      },
+      "output_chars": 8280
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 20197
+    }
+  ]
+}

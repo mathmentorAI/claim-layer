@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent Evaluation — /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/banking-finance__analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet/direct_rag</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         max-width: 960px; margin: 40px auto; padding: 0 24px;
+         color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .meta { color: #666; font-size: 0.85rem; margin-bottom: 32px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin-bottom: 40px; }
+  .stat { background: #f5f5f5; border-radius: 8px; padding: 16px; text-align: center; }
+  .stat .value { font-size: 2rem; font-weight: 700; }
+  .stat .label { font-size: 0.75rem; color: #666; text-transform: uppercase;
+                  letter-spacing: 0.05em; margin-top: 4px; }
+  h2 { font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px;
+        margin-top: 40px; }
+  details { border: 1px solid #e0e0e0; border-radius: 6px;
+             margin-bottom: 8px; overflow: hidden; }
+  details[open] { border-color: #b0b0b0; }
+  summary { padding: 12px 16px; cursor: pointer; list-style: none;
+             display: flex; align-items: center; gap: 10px;
+             background: #fafafa; user-select: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '▶'; font-size: 0.7rem; color: #999;
+                     transition: transform 0.15s; flex-shrink: 0; }
+  details[open] summary::before { transform: rotate(90deg); }
+  .inner { padding: 16px; background: white; border-top: 1px solid #e0e0e0; }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 8px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; flex-shrink: 0; }
+  .badge-found    { background: #d4edda; color: #155724; }
+  .badge-missed   { background: #f8d7da; color: #721c24; }
+  .badge-allpass  { background: #1a9850; color: #fff; font-size: 0.85rem; }
+  .badge-missed-any { background: #fdae61; color: #4a2a04; font-size: 0.85rem; }
+  .title { font-weight: 500; flex: 1; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-size: 0.75rem; font-weight: 600; color: #666;
+                  text-transform: uppercase; letter-spacing: 0.05em;
+                  margin-bottom: 2px; }
+  .reasoning { background: #f8f9fa; border-left: 3px solid #dee2e6;
+                padding: 10px 12px; font-size: 0.88rem; color: #444;
+                border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>Agent Evaluation Report</h1>
+<div class="meta">
+  Run: <strong>/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/banking-finance__analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet/direct_rag</strong> &nbsp;&middot;&nbsp;
+  Task: banking-finance/analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet &nbsp;&middot;&nbsp;
+  Judge: nvidia/nemotron-3-super-120b-a12b &nbsp;&middot;&nbsp;
+  Scored: 2026-10-19
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="value">0.00</div><div class="label">Score</div></div>
+  <div class="stat"><div class="value">23/66</div><div class="label">Criteria Passed</div></div>
+  <div class="stat"><div class="value">0/0</div><div class="label">Doc Coverage</div></div>
+  <div class="stat">
+    <div class="value">
+      <span class="badge badge-missed-any">MISSED 43</span>
+    </div>
+    <div class="label">All-pass (every criterion)</div>
+  </div>
+</div>
+
+<h2>Criteria (23 passed, 43 failed)</h2>
+
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001 Identified: SOFR Floor Insertion (0.00% → 0.75%)</span>
+    <span style="font-size:0.8rem;color:#999">C-001</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo clearly identifies the SOFR floor insertion, stating: 'Original Term Sheet: - SOFR Floor: 0.00% (i.e., Term SOFR shall be deemed to be not less than 0.00%)' and 'Lender's Markup: - SOFR Floor: 0.75% per annum', confirming the deviation from 0.00% to 0.75%.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001 Impact: Potential Cost Under Rate Decline Scenarios</span>
+    <span style="font-size:0.8rem;color:#999">C-002</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo discusses the potential economic impact of the 0.75% SOFR floor under rate decline scenarios, noting that the floor creates 'material tail risk' if rates remain low, becomes relevant if SOFR falls below 0.75% (possible in recession scenarios), and references forward curve estimates showing Term SOFR projections of 3.25%-4.60% over the projection period, indicating awareness of the floor's impact in lower rate environments.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001 Recommendation: Push Back to 0.00% or Max 0.25%</span>
+    <span style="font-size:0.8rem;color:#999">C-003</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo explicitly recommends pushing back the SOFR floor to 0.20% as a redline change, which satisfies the criterion of negotiating down to a lower floor (e.g., 0.25% or similar compromise).</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002 Identified: Margin Grid Widened by 25 bps at Each Tier</span>
+    <span style="font-size:0.8rem;color:#999">C-004</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo explicitly identifies a uniform 25 basis point increase in the Applicable Margin across all leverage ratio tiers, with specific examples showing the lowest tier increasing from 200 bps to 225 bps and the highest tier from 300 bps to 325 bps, satisfying the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002 Identified: Upward-Only / Annual Ratchet Mechanic Added</span>
+    <span style="font-size:0.8rem;color:#999">C-005</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo identifies the change from quarterly bidirectional adjustments to upward-only quarterly with annual downward adjustments, noting that downward adjustments are restricted to the first business day of each fiscal year, which satisfies the criterion for upward-only/annual ratchet mechanic.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002 Quantification: ~$437,500/yr Additional Interest at Full Draw</span>
+    <span style="font-size:0.8rem;color:#999">C-006</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo quantifies the annual interest cost increase from the 25 bps margin widening on a fully drawn $175,000,000 facility as $437,500 per year in the Executive Summary under 'Pricing Increases' and in Section 3.1 Interest Cost Differential, where it states: 'Uniform 25 basis point increase across all leverage ratio tiers' and calculates the impact as $437,500 annually when fully drawn.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_003 Identified: Commitment Fee Changed from Flat 0.30% to Grid</span>
+    <span style="font-size:0.8rem;color:#999">C-007</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo clearly identifies the commitment fee deviation: it changed from a flat 0.30% to a leverage-based grid of 0.30% (≤2.50x), 0.40% (>2.50x but ≤3.25x), and 0.50% (>3.25x), as stated in Section 1.3 Commitment Fee Structure.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_003 Quantification: ~$190,000/yr Increase at High Tier</span>
+    <span style="font-size:0.8rem;color:#999">C-008</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo quantifies the commitment fee impact by showing that at projected leverage of 2.804x in FY2025, the fee increases from 0.30% to 0.40%, resulting in a $14,000 increase. While not using the exact $95M unused commitments example from the criterion, it provides a reasonable illustrative calculation showing meaningful additional cost at higher leverage tiers, satisfying the requirement for quantification of commitment fee impact.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_003 Risk Rating: Yellow</span>
+    <span style="font-size:0.8rem;color:#999">C-009</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's analysis of the commitment fee grid deviation is rated Yellow, as it notes the change from a flat fee to a leverage-based grid is 'market standard for facilities of this size' and aligns incentives, describing it as notable but negotiable, which matches the criterion for a Yellow rating.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_004 Identified: Both Extension Options Eliminated</span>
+    <span style="font-size:0.8rem;color:#999">C-010</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo explicitly states that the lender's markup deleted both one-year extension options, fixing the maturity date at January 15, 2030 with no possibility of extension, satisfying the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_004 Recommendation: Reinstate At Least One Extension Option</span>
+    <span style="font-size:0.8rem;color:#999">C-011</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo recommends reinstating at least one one-year extension option in section 7.2 Structural Recommendations under 'Extension Options', stating: 'Redline: Restore one (1) one-year extension option'.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_004 Risk Rating: Yellow</span>
+    <span style="font-size:0.8rem;color:#999">C-012</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's analysis of the extension option deletion is rated Yellow, as it identifies the removal as a material deviation that eliminates borrower flexibility and term extension potential, which aligns with the criterion's requirement for a Yellow rating.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005 Identified: Leverage Step-Down Schedule Accelerated</span>
+    <span style="font-size:0.8rem;color:#999">C-013</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any changes to the leverage ratio step-down schedule, such as stepping to 3.50x after FY2025 instead of FY2026, to 3.25x after FY2026 instead of FY2027, or adding a new step to 3.00x after FY2027. The analysis focuses on pricing, fees, structural changes, and covenants, but does not identify an accelerated leverage step-down schedule as described in ISSUE_005.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005 Identified: FCCR Increased from 1.25x to 1.35x</span>
+    <span style="font-size:0.8rem;color:#999">C-014</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any change to the Fixed Charge Coverage Ratio (FCCR) from 1.25x to 1.35x. The analysis covers pricing, structural, and covenant changes such as SOFR floor, applicable margin grid, commitment fee structure, extension options, margin adjustment mechanics, upfront fee, MFN provision, CAPEX limitation, and asset sales provision, but FCCR is not discussed.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005 Impact Analysis: Reduced Covenant Headroom</span>
+    <span style="font-size:0.8rem;color:#999">C-015</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not analyze reduced covenant headroom under tightened financial covenants, nor does it reference the current FCCR (~1.817x) and its headroom against a new 1.35x threshold, or model how acquisition-driven leverage increases could stress accelerated step-downs. The covenant changes discussed (MFN, CAPEX limit, asset sales) are not financial maintenance covenants, and no headroom or impact analysis is provided for any financial covenant tightening.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005 Risk Rating: Yellow or Red</span>
+    <span style="font-size:0.8rem;color:#999">C-016</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze financial covenant tightening such as accelerated leverage step-downs or FCCR increases. The analysis focuses on pricing, structural changes, and other covenants (e.g., CAPEX, MFN), but does not address the specific financial covenant elements required by ISSUE_005. Therefore, the criterion cannot be satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006 Identified: Non-Recurring Add-Back Cap Reduced</span>
+    <span style="font-size:0.8rem;color:#999">C-017</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any change to a non-recurring add-back cap, nor does it identify a reduction from $5,000,000/year and $15,000,000 lifetime to $3,000,000/year and $9,000,000 lifetime. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006 Identified: Synergy Add-Back Cap Reduced (15%→10%)</span>
+    <span style="font-size:0.8rem;color:#999">C-018</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any synergy add-back cap reduction from 15% to 10% of pro forma EBITDA. The memo focuses on pricing, structural, and covenant changes such as SOFR floor, applicable margin grid, commitment fees, extension options, and MFN provisions, but does not identify the specified synergy add-back cap change.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006 Identified: Synergy Realization Period Shortened (18→12 months)</span>
+    <span style="font-size:0.8rem;color:#999">C-019</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any synergy realization period, nor does it identify a shortening from 18 months to 12 months. The memo focuses on pricing, structural, and covenant deviations in a credit facility term sheet, with no reference to synergy timelines.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006 Quantification: Synergy Cap Reduction of ~$3,750,000</span>
+    <span style="font-size:0.8rem;color:#999">C-020</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or quantify any synergy add-back cap reduction, nor does it provide an illustrative example of such a reduction (e.g., at $75,000,000 pro forma EBITDA). The criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007 Identified: Individual Acquisition Basket Reduced ($25M→$15M)</span>
+    <span style="font-size:0.8rem;color:#999">C-021</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any reduction in individual permitted acquisition size from $25,000,000 to $15,000,000. The memo covers pricing, structural, and covenant changes, but does not address acquisition baskets or permitted acquisition limits.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007 Identified: Annual Aggregate Acquisition Basket Reduced ($60M→$40M)</span>
+    <span style="font-size:0.8rem;color:#999">C-022</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any reduction in the annual aggregate acquisition basket from $60,000,000 to $40,000,000. The only acquisition-related change discussed is the Capital Expenditures limitation (Section 4.2), which sets an annual CAPEX limit of $30,000,000 with a $5,000,000 carry-forward, but this is unrelated to an acquisition basket.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007 Identified: Pro Forma Cushion Requirement Added (0.25x tighter)</span>
+    <span style="font-size:0.8rem;color:#999">C-023</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or identify any 'pro forma cushion' requirement or acquisition pro forma compliance testing at tighter covenant levels. The deviation analysis covers pricing, structural, and covenant changes but omits this specific issue.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007 Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-024</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze the permitted acquisition basket reduction or pro forma cushion requirement, which are necessary to evaluate ISSUE_007 Risk Rating: Red. Without addressing these specific elements, the criterion cannot be satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007 Recommendation: Specific Counterproposal on Baskets</span>
+    <span style="font-size:0.8rem;color:#999">C-025</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention acquisition baskets, specific counterproposal amounts for baskets (e.g., $25M/$60M), or the 0.25x pro forma cushion. The recommendations focus on SOFR floor, applicable margin, commitment fee, extension options, margin adjustment mechanics, MFN provision, CAPEX limitation, and upfront fee, but do not address baskets at all. Therefore, the criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008 Identified: $8M Hard Dollar Cap on Restricted Payments Added</span>
+    <span style="font-size:0.8rem;color:#999">C-026</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention an $8M hard dollar cap on restricted payments or distributions to equity holders. The memo discusses CAPEX limitations, MFN provisions, and other covenants, but no such restricted payments cap is identified.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008 Identified: Pro Forma Leverage Test Tightened (3.00x→2.50x)</span>
+    <span style="font-size:0.8rem;color:#999">C-027</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any change to the pro forma leverage test for restricted payments, specifically a tightening from 3.00x to 2.50x. The analysis covers pricing, structural, and covenant changes, but this specific issue is not identified.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008 Impact: Cumulative Restriction on Sponsor Distributions</span>
+    <span style="font-size:0.8rem;color:#999">C-028</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not analyze the cumulative effect of a hard cap and tighter leverage test on sponsor distributions, nor does it reference an $8M cap, Timberline Capital, or the specific distribution mechanics described in the criterion (e.g., 50% of $23.2M ECF). The analysis focuses on pricing, structural changes, and financial impact but omits any discussion of distribution restrictions or their combined effect.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008 Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-029</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze any restricted payments deviation (hard cap or tighter leverage test), so the criterion regarding a Red rating for such deviation cannot be satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009 Identified: Cross-Default Threshold Lowered ($5M→$1M)</span>
+    <span style="font-size:0.8rem;color:#999">C-030</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any change to the cross-default threshold from $5,000,000 to $1,000,000. The analysis covers pricing, structural, and covenant changes, but this specific issue is not identified.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009 Impact: Risk from Equipment Financing Disputes</span>
+    <span style="font-size:0.8rem;color:#999">C-031</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not discuss the $1,000,000 threshold in relation to equipment financing disputes, nor does it analyze whether this threshold is disproportionately low given Ridgeline's $17,500,000 in equipment financing or individual lease obligations as small as $350,000. There is no mention of equipment financing disputes or the risk that the threshold could trigger on immaterial disputes.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009 Recommendation: Restore to $5M or Negotiate to ~$3.5M</span>
+    <span style="font-size:0.8rem;color:#999">C-032</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or analyze any cross-default threshold, nor does it make a recommendation to restore it to $5,000,000 or propose a compromise figure such as $3,500,000. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010 Identified: Change of Control Threshold Raised (35%→51%)</span>
+    <span style="font-size:0.8rem;color:#999">C-033</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any change in the change of control equity ownership trigger from 35% to 51% or any related provision regarding Timberline Capital's ownership threshold.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010 Impact: Restricts Normal PE Equity Management</span>
+    <span style="font-size:0.8rem;color:#999">C-034</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not discuss a 51% threshold or its impact on normal-course equity management by a PE sponsor, such as management incentive programs, co-investments, or secondary sales that could dilute below 51% while maintaining effective control. The criterion is not addressed.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010 Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-035</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze any change of control definition deviation, nor does it assign a risk rating (Red, Yellow, or Green) to such a deviation. The criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010 Recommendation: Retain 35% or Negotiate to ~40%</span>
+    <span style="font-size:0.8rem;color:#999">C-036</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or recommend retaining a 35% threshold or negotiating to ~40% for any provision. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011 Identified: Anti-Layering Covenant Added</span>
+    <span style="font-size:0.8rem;color:#999">C-037</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not identify the addition of an anti-layering covenant preventing the Borrower from incurring debt structurally or contractually senior to the revolving credit facility. No such covenant is mentioned in the analysis.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_011 Identified: Most-Favored-Nation (MFN) Provision Added</span>
+    <span style="font-size:0.8rem;color:#999">C-038</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo identifies the MFN provision in Section 4.1, stating that if Borrower enters into any credit facility with interest rate margin exceeding Applicable Margin by >0.50% (50 bps), the Applicable Margin automatically increases to be 0.50% less than such other facility's margin.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011 Distinction: Anti-Layering Acceptable, MFN Problematic</span>
+    <span style="font-size:0.8rem;color:#999">C-039</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or analyze an anti-layering covenant at all. It only discusses the MFN provision as problematic. Since there is no distinction made between anti-layering (acceptable) and MFN (problematic) because anti-layering is absent from the analysis, the criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_011 MFN Recommendation: Limit to Pari Passu / Exclude Sub Debt</span>
+    <span style="font-size:0.8rem;color:#999">C-040</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo recommends deleting the MFN provision entirely (Section 7.3), which satisfies the criterion of eliminating the MFN or limiting its scope. This is a valid approach to meet the requirement of limiting MFN to pari passu or excluding subordinated debt, as removal achieves the same protective effect.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_011 MFN Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-041</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output explicitly rates the MFN provision as Red in the Risk Assessment section, stating: 'MFN provision excessively restricts refinancing options' and recommending its deletion or significant limitation, which aligns with a Red rating for MFN risk.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012 Identified: ECF Sweep Step-Downs Eliminated (Flat 50%)</span>
+    <span style="font-size:0.8rem;color:#999">C-042</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention any Excess Cash Flow (ECF) sweep provisions, step-down structures, or changes to ECF sweep mechanics. The criterion regarding elimination of ECF sweep step-downs in favor of a flat 50% sweep is not addressed anywhere in the analysis.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012 Quantification: ~$11,600,000 Sweep at Current Leverage</span>
+    <span style="font-size:0.8rem;color:#999">C-043</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not quantify the impact of a 50% sweep at current leverage or mention the $11,600,000 figure related to FY2024 Excess Cash Flow of $23,200,000. It focuses on pricing, structural, and covenant changes but does not address excess cash flow sweep mechanics or provide the required quantification.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012 Market Practice: ECF Sweep Unusual for Revolving Facility</span>
+    <span style="font-size:0.8rem;color:#999">C-044</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or discuss an Excess Cash Flow (ECF) sweep, flat 50% or otherwise, nor does it address whether such a sweep is atypical for a revolving credit facility. The criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012 Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-045</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or evaluate an ECF sweep deviation or assign it a risk rating of Red, Yellow, or Green. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013 Identified: 'Taken as a Whole' Qualifier Removed from MAE</span>
+    <span style="font-size:0.8rem;color:#999">C-046</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or identify any change to the 'taken as a whole' qualifier in the Material Adverse Effect (MAE) definition. The analysis covers pricing, structural, and covenant changes but omits this specific MAE qualifier issue.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013 Identified: 'Material' Qualifier Removed from MAE Sub-Clauses</span>
+    <span style="font-size:0.8rem;color:#999">C-047</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any deletion of the word 'material' from MAE sub-clauses or any related analysis of MAE definition changes. The criterion is not addressed in the memo.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013 Legal Context: Market Practice/Case Law on MAE Definitions</span>
+    <span style="font-size:0.8rem;color:#999">C-048</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not reference market practice, legal standards, or case law regarding MAE definitions, the 'taken as a whole' principle, or enterprise-level materiality assessment. There is no mention of Akorn v. Fresenius or similar MAE jurisprudence.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013 Risk Rating: Red</span>
+    <span style="font-size:0.8rem;color:#999">C-049</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or evaluate any MAE (Material Adverse Effect) definition narrowing, nor does it assign a risk rating (Red, Yellow, or Green) to such a change. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014 Identified: Reinvestment Period Shortened (365→180 days)</span>
+    <span style="font-size:0.8rem;color:#999">C-050</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any change to the reinvestment period for asset sale proceeds, nor does it identify a shortening from 365 days to 180 days. The memo discusses asset sale provisions generally but does not specify any reinvestment period or its alteration.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014 Impact: 180-Day Period Insufficient for Infrastructure Capital Redeployment</span>
+    <span style="font-size:0.8rem;color:#999">C-051</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not discuss a 180-day reinvestment period or its sufficiency for infrastructure capital redeployment. There is no mention of asset sale proceeds reinvestment timelines or operational challenges related to a 180-day period for Ridgeline's business.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014 Recommendation: Restore to 365 Days or Compromise at ~270 Days</span>
+    <span style="font-size:0.8rem;color:#999">C-052</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention or make any recommendation regarding the reinvestment period, 365 days, 270 days, 180 days, or any related term. Therefore, it does not satisfy the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Red/Yellow/Green Risk Rating System Used</span>
+    <span style="font-size:0.8rem;color:#999">C-053</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not use a Red/Yellow/Green risk rating system or any equivalent color/severity coding to classify deviations. It provides detailed analysis and recommendations but lacks the required risk rating classification.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Each Deviation Includes Original Term and Lender's Proposed Change</span>
+    <span style="font-size:0.8rem;color:#999">C-054</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo consistently presents each substantive deviation with both the original term and the lender's proposed change, as seen in sections covering pricing (Applicable Margin grid, SOFR floor, commitment fee, upfront fee), structural changes (maturity and extension options, margin adjustment mechanics), and covenant/documentation changes (MFN provision, CAPEX limitation, asset sales provision). Each deviation analysis explicitly contrasts the original term sheet provision with the lender's markup.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Memo Distinguishes Substantive from Cosmetic/Standard Changes</span>
+    <span style="font-size:0.8rem;color:#999">C-055</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo distinguishes substantive from cosmetic changes by explicitly labeling certain items as market-standard or non-substantive, such as accepting the grid-based commitment fee as 'market standard for facilities of this size' and noting that the Letter of Credit Fee and Administrative Agent Fee are not detailed in the original but are presented as standard. It also provides recommendations that accept or compromise on certain changes (e.g., commitment fee structure) while pushing back on others (e.g., SOFR floor, extension options), indicating a clear differentiation between negotiable substantive deviations and less critical or market-standard adjustments.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Memo References Negotiation Playbook Where Applicable</span>
+    <span style="font-size:0.8rem;color:#999">C-056</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo references the negotiation playbook multiple times, including specific guidance on SOFR floors, applicable margin ranges, and other deviations, demonstrating that the playbook was consulted and applied where relevant.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Memo Uses Financial Projections for Quantitative Analysis</span>
+    <span style="font-size:0.8rem;color:#999">C-057</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo uses Ridgeline's financial projections (FY2025-FY2029) to quantify the impact of at least two deviations: the Applicable Margin increase (interest cost differential) and the commitment fee structure change, showing annual dollar impacts for each fiscal year based on projected leverage ratios.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Memo Addresses Borrower Priority: Acquisition Flexibility</span>
+    <span style="font-size:0.8rem;color:#999">C-058</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention acquisition flexibility or acquisition strategy at any point, despite the criterion requiring discussion of the impact of deviations on Ridgeline's acquisition flexibility as communicated by partner Sandra Kovac. The memo focuses on pricing, structural changes, financial impact, and covenants, but does not address how the deviations affect the borrower's ability to pursue acquisitions.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Memo Addresses Borrower Priority: Sponsor Distribution Capacity</span>
+    <span style="font-size:0.8rem;color:#999">C-059</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo does not mention sponsor distribution capacity or Timberline Capital Partners' ability to receive distributions, despite the criterion requiring discussion of this specific borrower priority.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001 Risk Rating: Yellow or Red (Not Green)</span>
+    <span style="font-size:0.8rem;color:#999">C-060</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's analysis rates the SOFR floor insertion as a material deviation, citing playbook guidance that a floor of 0.75% or higher is 'above market for middle-market revolvers and should be resisted in all circumstances' and creates 'material tail risk.' This aligns with a Yellow or Red risk rating, not Green.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_002 Risk Rating: Yellow or Red (Not Green)</span>
+    <span style="font-size:0.8rem;color:#999">C-061</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output identifies the margin grid widening (uniform 25 bps increase across all tiers) and the upward-only ratchet mechanic (changed from bidirectional quarterly adjustments to upward-only quarterly with annual downward adjustments) as material deviations. These are discussed in Sections 1.1 and 2.2, with associated risks highlighted in Section 6 (Risk Assessment), including increased interest rate risk and reduced financial flexibility. The analysis concludes these changes are aggressive and require concessions, implying a non-Green (Yellow or Red) risk rating.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006 Risk Rating: Yellow or Red (Not Green)</span>
+    <span style="font-size:0.8rem;color:#999">C-062</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention EBITDA add-back cap reduction or synergy add-back restriction, so the criterion regarding their risk rating cannot be satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009 Risk Rating: Yellow or Red (Not Green)</span>
+    <span style="font-size:0.8rem;color:#999">C-063</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze any cross-default threshold reduction from $5M to $1M, so it does not address the criterion. Therefore, it cannot be rated Yellow or Red for that issue, and the criterion is not satisfied.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_014 Risk Rating: Yellow or Red (Not Green)</span>
+    <span style="font-size:0.8rem;color:#999">C-064</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or analyze any reinvestment period shortening from 365 to 180 days, nor does it assign a risk rating (Yellow, Red, or Green) to such a change. The criterion is not addressed in the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Correct Identification of Borrower and Lender</span>
+    <span style="font-size:0.8rem;color:#999">C-065</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo correctly identifies the Borrower as Ridgeline Infrastructure Holdings, LLC and the Lender/Administrative Agent as Cascade National Bank throughout the document, including in the Executive Summary, sections discussing the lender's markup, and the conclusion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Correct Identification of Facility Size</span>
+    <span style="font-size:0.8rem;color:#999">C-066</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The memo correctly identifies the facility as a $175,000,000 senior secured revolving credit facility, as evidenced by the upfront fee calculation (\$175,000,000 × 0.50% = \$875,000) and repeated references to the revolving nature of the facility throughout the analysis.</div>
+    </div>
+  </div>
+</details>
+
+</body>
+</html>

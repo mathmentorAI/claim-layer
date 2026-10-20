@@ -1,0 +1,64 @@
+{
+  "task_id": "banking-finance/analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet",
+  "arm": "direct_rag",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 26782,
+  "output_tokens": 4956,
+  "total_tokens": 31738,
+  "wall_clock_seconds": 81.58,
+  "deliverable_chars": 17262,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "list_documents",
+      "args": {},
+      "output_chars": 588
+    },
+    {
+      "round": 2,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "original-term-sheet.docx",
+        "start_chunk": 0,
+        "num_chunks": 5
+      },
+      "output_chars": 6733
+    },
+    {
+      "round": 3,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "lender-markup-term-sheet.docx",
+        "start_chunk": 0,
+        "num_chunks": 5
+      },
+      "output_chars": 6752
+    },
+    {
+      "round": 4,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "lender-markup-term-sheet.docx",
+        "start_chunk": 5,
+        "num_chunks": 5
+      },
+      "output_chars": 6772
+    },
+    {
+      "round": 5,
+      "tool": "search_chunks",
+      "args": {
+        "query": "original-term-sheet.docx Applicable Margin pricing interest rate",
+        "top_k": 10
+      },
+      "output_chars": 13458
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 17262
+    }
+  ]
+}

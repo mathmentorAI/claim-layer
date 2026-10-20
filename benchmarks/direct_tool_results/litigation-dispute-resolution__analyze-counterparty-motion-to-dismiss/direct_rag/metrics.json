@@ -1,0 +1,65 @@
+{
+  "task_id": "litigation-dispute-resolution/analyze-counterparty-motion-to-dismiss",
+  "arm": "direct_rag",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 42882,
+  "output_tokens": 7358,
+  "total_tokens": 50240,
+  "wall_clock_seconds": 126.41,
+  "deliverable_chars": 29284,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "list_documents",
+      "args": {},
+      "output_chars": 692
+    },
+    {
+      "round": 2,
+      "tool": "search_chunks",
+      "args": {
+        "query": "motion to dismiss grounds arguments",
+        "filename_filter": "datacore-motion-to-dismiss",
+        "top_k": 10
+      },
+      "output_chars": 13178
+    },
+    {
+      "round": 3,
+      "tool": "search_chunks",
+      "args": {
+        "query": "complaint counts breach of contract fraudulent inducement negligent misrepresentation GUDTPA",
+        "filename_filter": "pinnacle-complaint",
+        "top_k": 10
+      },
+      "output_chars": 13578
+    },
+    {
+      "round": 4,
+      "tool": "search_chunks",
+      "args": {
+        "query": "MSA Section 9.4 limitation of liability consequential damages waiver integration clause forum selection choice of law",
+        "filename_filter": "msa-pinnacle-datacore",
+        "top_k": 15
+      },
+      "output_chars": 20187
+    },
+    {
+      "round": 5,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "msa-pinnacle-datacore.docx",
+        "start_chunk": 28,
+        "num_chunks": 5
+      },
+      "output_chars": 6646
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 29284
+    }
+  ]
+}

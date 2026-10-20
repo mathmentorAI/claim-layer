@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent Evaluation — /Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_rag</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         max-width: 960px; margin: 40px auto; padding: 0 24px;
+         color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .meta { color: #666; font-size: 0.85rem; margin-bottom: 32px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin-bottom: 40px; }
+  .stat { background: #f5f5f5; border-radius: 8px; padding: 16px; text-align: center; }
+  .stat .value { font-size: 2rem; font-weight: 700; }
+  .stat .label { font-size: 0.75rem; color: #666; text-transform: uppercase;
+                  letter-spacing: 0.05em; margin-top: 4px; }
+  h2 { font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 8px;
+        margin-top: 40px; }
+  details { border: 1px solid #e0e0e0; border-radius: 6px;
+             margin-bottom: 8px; overflow: hidden; }
+  details[open] { border-color: #b0b0b0; }
+  summary { padding: 12px 16px; cursor: pointer; list-style: none;
+             display: flex; align-items: center; gap: 10px;
+             background: #fafafa; user-select: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '▶'; font-size: 0.7rem; color: #999;
+                     transition: transform 0.15s; flex-shrink: 0; }
+  details[open] summary::before { transform: rotate(90deg); }
+  .inner { padding: 16px; background: white; border-top: 1px solid #e0e0e0; }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 8px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; flex-shrink: 0; }
+  .badge-found    { background: #d4edda; color: #155724; }
+  .badge-missed   { background: #f8d7da; color: #721c24; }
+  .badge-allpass  { background: #1a9850; color: #fff; font-size: 0.85rem; }
+  .badge-missed-any { background: #fdae61; color: #4a2a04; font-size: 0.85rem; }
+  .title { font-weight: 500; flex: 1; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-size: 0.75rem; font-weight: 600; color: #666;
+                  text-transform: uppercase; letter-spacing: 0.05em;
+                  margin-bottom: 2px; }
+  .reasoning { background: #f8f9fa; border-left: 3px solid #dee2e6;
+                padding: 10px 12px; font-size: 0.88rem; color: #444;
+                border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>Agent Evaluation Report</h1>
+<div class="meta">
+  Run: <strong>/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/structured-finance-securitization__compare-offering-memorandum-against-indenture/direct_rag</strong> &nbsp;&middot;&nbsp;
+  Task: structured-finance-securitization/compare-offering-memorandum-against-indenture &nbsp;&middot;&nbsp;
+  Judge: nvidia/nemotron-3-super-120b-a12b &nbsp;&middot;&nbsp;
+  Scored: 2026-10-19
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="value">0.00</div><div class="label">Score</div></div>
+  <div class="stat"><div class="value">11/37</div><div class="label">Criteria Passed</div></div>
+  <div class="stat"><div class="value">0/0</div><div class="label">Doc Coverage</div></div>
+  <div class="stat">
+    <div class="value">
+      <span class="badge badge-missed-any">MISSED 26</span>
+    </div>
+    <div class="label">All-pass (every criterion)</div>
+  </div>
+</div>
+
+<h2>Criteria (11 passed, 26 failed)</h2>
+
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Identifies Reserve Account waterfall position discrepancy</span>
+    <span style="font-size:0.8rem;color:#999">C-001</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report clearly identifies that the Indenture places Reserve Account replenishment at step 13 (after all principal payments) while the Offering Memorandum incorrectly places it at step 10 (between Class A-3 principal and Class B principal), satisfying the criterion for ISSUE_001.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Explains impact of Reserve Account waterfall misplacement</span>
+    <span style="font-size:0.8rem;color:#999">C-002</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explains that placing Reserve Account replenishment before Class B and C principal payments (as the OM states) would give the Reserve Account priority over those note classes, altering the credit enhancement structure and potentially affecting ratings. This is detailed in the 'Credit Enhancement Impact' and 'Ratings Analysis Impact' sections under Issue 1.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Recommends conforming OM to Indenture for waterfall</span>
+    <span style="font-size:0.8rem;color:#999">C-003</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explicitly recommends correcting the Offering Memorandum to conform to the Indenture's waterfall structure, specifically moving Reserve Account replenishment to step 13 (after all principal distributions to Classes A-1 through C) and updating related descriptions to reflect that replenishment is subordinated to all principal payments on the Notes.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Rates waterfall discrepancy as Critical or high severity</span>
+    <span style="font-size:0.8rem;color:#999">C-004</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explicitly identifies the waterfall priority discrepancy as a material discrepancy with significant structural subordination, credit enhancement, ratings analysis, and financial impact implications. It is treated as a high-severity issue requiring immediate correction, satisfying the criterion for Critical or high severity.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_002: Identifies Defaulted Receivable definition mismatch (120 vs 90 days)</span>
+    <span style="font-size:0.8rem;color:#999">C-005</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or identify any discrepancy regarding the definition of 'Defaulted Receivable' (120 vs 90 days) between the Indenture and Offering Memorandum. The report focuses on waterfall priority and Class C Note coupon rate inconsistencies only.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_002: Explains impact of default definition mismatch</span>
+    <span style="font-size:0.8rem;color:#999">C-006</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss any default definition mismatch (e.g., 120-vs-90-day discrepancy) or its impact on Annualized Default Rate or Trigger Events. The two issues covered are waterfall priority and coupon rate inconsistency, not default definitions.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_002: Notes Indenture controls for default definition</span>
+    <span style="font-size:0.8rem;color:#999">C-007</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention any default definition or 120-day definition issue, nor does it state that the Indenture's definition controls or recommend conforming the OM to the Indenture for default definition. The discrepancies discussed are about waterfall priority and coupon rate inconsistency, not default definition.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_003: Identifies clean-up call threshold reference amount error</span>
+    <span style="font-size:0.8rem;color:#999">C-008</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any discrepancy regarding the clean-up call threshold reference amount. The report discusses waterfall priority and Class C note coupon rate inconsistencies but does not mention the clean-up call threshold or compare 10% of Initial Pool Balance versus 10% of initial Note Balance.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_003: Quantifies dollar impact of clean-up call error</span>
+    <span style="font-size:0.8rem;color:#999">C-009</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention or quantify any clean-up call error or threshold difference between the Indenture and Offering Memorandum. The criterion requires quantification of a specific dollar impact related to a clean-up call error, which is absent from the output.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_004: Identifies Class C Note coupon rate discrepancy (6.75% vs 6.50%)</span>
+    <span style="font-size:0.8rem;color:#999">C-010</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report identifies that the Indenture specifies the Class C Note interest rate as 6.75%, the OM's Summary of Terms correctly states 6.75%, but the OM's 'Description of the Notes' section misstates the rate as 6.50%, satisfying the criterion for ISSUE_004.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_004: Notes internal OM inconsistency for Class C rate</span>
+    <span style="font-size:0.8rem;color:#999">C-011</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explicitly notes an internal inconsistency within the Offering Memorandum: the Summary of Terms table states the Class C Note coupon as 6.75% per annum, while the Description of the Notes section incorrectly states it as 6.50% per annum. This satisfies the criterion for ISSUE_004.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Identifies CNL Trigger Table discrepancy (6.00% vs 5.75%)</span>
+    <span style="font-size:0.8rem;color:#999">C-012</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any discrepancy regarding the Cumulative Net Loss Trigger Table or thresholds of 6.00% vs 5.75% for any period, including 'Jul 2027 and thereafter'. The report focuses on waterfall priority and Class C Note coupon rate inconsistencies only.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Explains impact of CNL trigger discrepancy</span>
+    <span style="font-size:0.8rem;color:#999">C-013</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss any CNL trigger discrepancy or a 25 basis point difference between 6.00% and 5.75%. It addresses a Class C Note coupon rate inconsistency (6.75% vs 6.50%) and a waterfall priority discrepancy, but not the specific CNL trigger issue described in the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006: Identifies Minimum OC Amount definition conflict (current vs initial pool balance)</span>
+    <span style="font-size:0.8rem;color:#999">C-014</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any discrepancy regarding the Minimum OC Amount definition conflict between the Indenture (defining it as 1.50% of the current pool balance) and the Offering Memorandum (stating it as 1.50% of the initial pool balance). The report focuses on waterfall priority and Class C Note coupon rate inconsistencies but omits this specific issue.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_006: Explains structural impact of static vs dynamic OC floor</span>
+    <span style="font-size:0.8rem;color:#999">C-015</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not discuss static vs dynamic OC floor or explain the structural impact of using initial pool balance versus current pool balance for Minimum OC Amount calculations. The criterion is not addressed.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007: Identifies Reserve Account Required Balance floor omission</span>
+    <span style="font-size:0.8rem;color:#999">C-016</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any omission regarding the Reserve Account Required Balance floor. It discusses discrepancies in waterfall priority and Class C Note coupon rate, but does not mention the Reserve Account Required Balance being defined as the greater of 1.00% of current outstanding note balance and 0.50% of initial outstanding note balance ($3,437,500) in the Indenture, nor does it note that the OM omits this floor by describing it only as 1.00% of the then-current outstanding note balance.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_007: Explains consequence of missing Reserve Account floor</span>
+    <span style="font-size:0.8rem;color:#999">C-017</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention a Reserve Account floor, a $3,437,500 threshold, or the consequence of the Reserve Account declining below that amount as notes amortize under the Offering Memorandum's description. Therefore, it does not explain the consequence of missing the Reserve Account floor as required by criterion ISSUE_007.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008: Identifies Business Day definition missing Wilmington, DE</span>
+    <span style="font-size:0.8rem;color:#999">C-018</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention or identify any discrepancy regarding the Business Day definition, specifically the omission of Wilmington, DE in the Offering Memorandum's definition compared to the Indenture's definition that includes both New York, NY and Wilmington, DE.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_008: Notes relevance of Wilmington to Indenture Trustee</span>
+    <span style="font-size:0.8rem;color:#999">C-019</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention the Indenture Trustee's location in Wilmington, Delaware, nor does it discuss the relevance of Wilmington to the Business Day definition or payment processing on Delaware-specific holidays.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009: Identifies servicing fee basis mismatch (pool balance vs note balance)</span>
+    <span style="font-size:0.8rem;color:#999">C-020</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any servicing fee basis mismatch between pool balance and note balance. The discrepancies discussed are about waterfall priority for Reserve Account replenishment and Class C Note coupon rate inconsistency. No mention of servicing fee calculation basis is present in the report.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_009: Quantifies servicing fee basis impact</span>
+    <span style="font-size:0.8rem;color:#999">C-021</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not quantify or explain the servicing fee basis impact related to the pool balance exceeding the note balance, nor does it mention any dollar amount such as $2,067 per month or $24,800 per year less in servicing fees. The criterion ISSUE_009 is not addressed in the report.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010: Identifies back-up servicer omission from OM</span>
+    <span style="font-size:0.8rem;color:#999">C-022</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any back-up servicer omission. It discusses waterfall priority and coupon rate inconsistencies, but fails to identify that the Indenture names Granite Loan Servicing LLC as back-up servicer with a $5,000 monthly fee while the Offering Memorandum omits this information.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_010: Notes investor materiality of back-up servicer info</span>
+    <span style="font-size:0.8rem;color:#999">C-023</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention a back-up servicer or discuss its materiality to investors for servicing continuity risk.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011: Identifies max original term rep discrepancy (75 vs 72 months)</span>
+    <span style="font-size:0.8rem;color:#999">C-024</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any discrepancy regarding the maximum original term of receivables (75 vs 72 months) in the representations and warranties section. The report focuses on waterfall priority and Class C note coupon rate inconsistencies, but does not address the specific term discrepancy required by the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_011: Explains repurchase obligation risk from term rep mismatch</span>
+    <span style="font-size:0.8rem;color:#999">C-025</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not mention any repurchase obligation risk arising from a term mismatch between the Offering Memorandum and Indenture, nor does it discuss a 3-month difference affecting receivables with original terms between 72 and 75 months. The discrepancies analyzed relate to waterfall priority and coupon rate inconsistency, not term representations or repurchase triggers.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012: Identifies receivable count discrepancy (31,412 vs ~31,200)</span>
+    <span style="font-size:0.8rem;color:#999">C-026</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any receivable count discrepancy between the Indenture and Offering Memorandum. The report focuses on waterfall priority and coupon rate inconsistencies but does not address receivable counts or identify a difference of 31,412 vs ~31,200 receivables.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_012: Quantifies principal balance impact of receivable count error</span>
+    <span style="font-size:0.8rem;color:#999">C-027</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention any receivable count error, a discrepancy of 212 receivables, an average balance of $22,676, or a resulting principal balance impact of approximately $4.8 million. The criterion ISSUE_012 is not addressed in the report.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013: Identifies Rule 144A transfer restriction language deficiency</span>
+    <span style="font-size:0.8rem;color:#999">C-028</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not identify any deficiency regarding Rule 144A transfer restriction language, specifically the omission of the requirement that the seller must reasonably believe the buyer is a QIB and take reasonable steps to ensure the buyer is aware the seller may be relying on Rule 144A, as required by Rule 144A(d)(4). The report focuses on waterfall priority and coupon rate inconsistencies but does not address transfer restriction provisions or Rule 144A compliance language.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_013: Notes placement agent liability exposure from Rule 144A gap</span>
+    <span style="font-size:0.8rem;color:#999">C-029</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention Rule 144A, placement agent liability, or securities law compliance concerns related to Ridgeline Capital Markets LLC. The report focuses on waterfall priority and coupon rate discrepancies without addressing the specified criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Report uses unique identifiers for each discrepancy</span>
+    <span style="font-size:0.8rem;color:#999">C-030</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not assign unique identifiers (e.g., DISC-001, DISC-002) to each discrepancy. The discrepancies are described in sections but lack a formal, sequential numbering system as required by the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">Report includes severity ratings for discrepancies</span>
+    <span style="font-size:0.8rem;color:#999">C-031</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report does not include severity ratings for the identified discrepancies. While it discusses material impacts, it does not assign a tiered severity rating (e.g., Critical/Major/Minor or High/Medium/Low) to either discrepancy as required by the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Report includes recommended resolutions for each discrepancy</span>
+    <span style="font-size:0.8rem;color:#999">C-032</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">For each of the two identified discrepancies (Waterfall Priority Discrepancy and Class C Note Coupon Rate Inconsistency), the agent's output includes a clear 'Recommendation' section specifying corrective actions to resolve the issue.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Report identifies Indenture as controlling document</span>
+    <span style="font-size:0.8rem;color:#999">C-033</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report explicitly states that the Indenture governs as the operative document and that the Offering Memorandum should be corrected to conform to its provisions, satisfying the criterion.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Report references both documents for each discrepancy</span>
+    <span style="font-size:0.8rem;color:#999">C-034</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">For each discrepancy, the report references specific provisions in both the Indenture and the Offering Memorandum. For the waterfall priority issue, it cites Indenture Article V, Section 5.01(a) (step Thirteenth) and the Offering Memorandum's 'Flow of Funds' section. For the Class C Note coupon rate inconsistency, it references Indenture Article II, Section 2.03 and the Offering Memorandum's 'Summary of Terms' table and 'Description of the Notes' section.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">Report correctly identifies transaction as CART 2024-2</span>
+    <span style="font-size:0.8rem;color:#999">C-035</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report consistently identifies the transaction as CART 2024-2 throughout the document, including in the title, executive summary, and all section headings, confirming it is the Crescent Auto Receivables Trust 2024-2 transaction.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-found">PASS</span>
+    <span class="title">ISSUE_001: Correctly identifies which document has the error</span>
+    <span style="font-size:0.8rem;color:#999">C-036</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The report clearly identifies that the Offering Memorandum contains the error regarding the Reserve Account waterfall position, stating it places replenishment at step 10 instead of the correct step 13 per the Indenture, and recommends correcting the OM to conform to the Indenture.</div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>
+    <span class="badge badge-missed">FAIL</span>
+    <span class="title">ISSUE_005: Recommends conforming OM's CNL table to Indenture</span>
+    <span style="font-size:0.8rem;color:#999">C-037</span>
+  </summary>
+  <div class="inner">
+    <div class="field">
+      <div class="field-label">Judge reasoning</div>
+      <div class="reasoning">The agent's output does not mention the Cumulative Net Loss (CNL) table or recommend correcting it to match the Indenture's 6.00% threshold for the 'Jul 2027 and thereafter' period. The discrepancies addressed are related to waterfall priority and Class C Note coupon rate, not the CNL table.</div>
+    </div>
+  </div>
+</details>
+
+</body>
+</html>

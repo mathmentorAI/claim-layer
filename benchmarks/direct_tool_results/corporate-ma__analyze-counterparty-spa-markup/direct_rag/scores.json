@@ -1,0 +1,398 @@
+{
+  "score": 0.0,
+  "max_score": 1.0,
+  "summary": "13/62 criteria passed.  Missed 49 \u2014 task FAIL.",
+  "all_pass": false,
+  "n_criteria": 62,
+  "n_passed": 13,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "ISSUE_001: Identifies earnout introduction as new provision",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any earnout introduction in the seller's markup. The report states that no earnout was present in the original draft and lists earnout as a 'nice-to-have concession' that could be conceded up to 5% EV, but it does not identify a $10 million earnout being introduced by the seller or any reduction in guaranteed closing cash from $112M to $102M due to such an earnout."
+    },
+    {
+      "id": "C-002",
+      "title": "ISSUE_001: Identifies $72M FY2026 Net Revenue earnout target",
+      "verdict": "fail",
+      "reasoning": "The report does not mention a $72M FY2026 Net Revenue earnout target. The earnout section only references a maximum of 5% EV ($6.375M) with approval, without specifying any FY2026 Net Revenue target or amount."
+    },
+    {
+      "id": "C-003",
+      "title": "ISSUE_001: Notes earnout growth rate from FY2024 revenue",
+      "verdict": "fail",
+      "reasoning": "The report does not mention the $72M earnout target, FY2024 revenue of $64.2M, or a 12% growth rate calculation. The criterion requires explicit mention of this specific growth rate, which is absent from the output."
+    },
+    {
+      "id": "C-004",
+      "title": "ISSUE_001: Flags 'commercially reasonable efforts' covenant as problematic",
+      "verdict": "fail",
+      "reasoning": "The report does not mention or flag the 'commercially reasonable efforts' covenant tied to the earnout as problematic or creating post-closing operational restrictions or potential disputes for the Buyer. The earnout is only referenced in Section 6.3 as a nice-to-have concession with no discussion of associated covenants."
+    },
+    {
+      "id": "C-005",
+      "title": "ISSUE_001: Flags requirement to maintain separate books through Dec 31, 2027 as problematic",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or flag any requirement to maintain separate books through December 31, 2027, nor does it identify such a requirement as creating post-closing operational restrictions for the Buyer. The report focuses on other deviations but omits this specific issue entirely."
+    },
+    {
+      "id": "C-006",
+      "title": "ISSUE_001: Notes conflict between earnout and Buyer's integration plans",
+      "verdict": "fail",
+      "reasoning": "The report does not mention Buyer's planned headcount reduction (45 positions) or integration plans, nor does it identify any conflict between such plans and earnout obligations or the commercially reasonable efforts covenant."
+    },
+    {
+      "id": "C-007",
+      "title": "ISSUE_001: Notes earnouts disfavored per playbook",
+      "verdict": "pass",
+      "reasoning": "The report references the negotiation playbook's position on earnouts in section 6.3, stating: 'Earnout: None [Verify] Max 5% EV ($6.375M) with approval Nice-to-have Can concede \u22645% EV with restrictions', indicating that earnouts are disfavored per the playbook and require deal partner approval."
+    },
+    {
+      "id": "C-008",
+      "title": "ISSUE_001: Notes Buyer's revenue projection below earnout threshold",
+      "verdict": "fail",
+      "reasoning": "The report does not mention Buyer's base case FY2026 revenue projection of $69.5M or note that it is below the $72M earnout threshold. The criterion regarding revenue projection below earnout threshold is not addressed anywhere in the output."
+    },
+    {
+      "id": "C-009",
+      "title": "ISSUE_002: Identifies NWC collar widened from $200K to $500K",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify that the Seller's markup widens the NWC collar from $200K to $500K. Instead, it states that no changes to NWC provisions were observed in the available chunks, and the original $200K collar (2.38% of NWC target) remains within the acceptable range (up to 3.0% or $252K). There is no mention of a $500K collar or any widening to that amount."
+    },
+    {
+      "id": "C-010",
+      "title": "ISSUE_002: Calculates $500K collar as percentage of NWC target",
+      "verdict": "fail",
+      "reasoning": "The report does not calculate or state that a $500K collar represents approximately 5.95% (or roughly 6%) of the $8.4M NWC target. It discusses the original $200K collar (2.38% of $8.4M) and mentions an acceptable threshold of up to $252K (3.0% of $8.4M), but never references a $500K collar or its percentage relative to the NWC target."
+    },
+    {
+      "id": "C-011",
+      "title": "ISSUE_002: Notes $500K collar exceeds playbook 3% maximum",
+      "verdict": "pass",
+      "reasoning": "The report references the playbook's 3% maximum NWC collar tolerance in section 1.2, stating: 'NWC Collar: $200K (2.38% of NWC) original \u2192 $252K (3.0% of $8.4M NWC target) acceptable' and 'Walk-Away: Collar exceeding 3% of NWC target'. This shows the agent noted the playbook's 3% threshold and evaluated the collar against it."
+    },
+    {
+      "id": "C-012",
+      "title": "ISSUE_002: Notes original $200K collar was within playbook limits",
+      "verdict": "pass",
+      "reasoning": "The report states: 'Based on available evidence, no changes to NWC provisions observed. The original 2.38% collar falls within the acceptable range (up to 3.0%).' This directly notes that the original $200K collar (2.38% of $8.4M) is within the playbook's 3% limit."
+    },
+    {
+      "id": "C-013",
+      "title": "ISSUE_003: Identifies general indemnity cap reduced from 10% to 7%",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify a reduction of the general indemnity cap from 10% to 7%. Instead, it states that no specific indemnity cap changes were identified in the available chunks and that the current 10% cap exceeds the minimum acceptable threshold of 8.5% EV. The report does not mention a 7% cap or the corresponding dollar amount of $8.925M."
+    },
+    {
+      "id": "C-014",
+      "title": "ISSUE_003: Identifies deductible basket increased from 0.75% to 1.25%",
+      "verdict": "fail",
+      "reasoning": "The report does not identify an increase in the deductible basket from 0.75% to 1.25% of equity value. Instead, it states that no specific basket changes were identified in the available chunks and that the current 0.75% EV tipping basket remains within the acceptable range (up to 1.0% EV if tipping). The 1.25% increase is not mentioned or detected."
+    },
+    {
+      "id": "C-015",
+      "title": "ISSUE_003: Identifies tipping basket changed to true deductible",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any change from a tipping basket to a true deductible. Instead, it states that no specific basket changes were identified and that the current tipping basket structure should be maintained, with no evidence of a structural change in basket type."
+    },
+    {
+      "id": "C-016",
+      "title": "ISSUE_004: Identifies holdback recharacterized as deferred consideration",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any recharacterization of the $15.5M holdback/escrow as 'deferred consideration' payable in two equal installments of $7.75M at 12 and 24 months post-closing. The holdback/escrow is discussed in sections 1.1 and 6.3, but no such recharacterization is mentioned."
+    },
+    {
+      "id": "C-017",
+      "title": "ISSUE_004: Flags loss of indemnification security/setoff rights",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss the recharacterization of holdback to deferred consideration or the loss of setoff rights as an indemnification security issue. While it mentions holdback/escrow in the nice-to-have concessions section and notes the importance of setoff rights in the negotiation strategy, it does not explicitly flag that the loss of setoff rights eliminates the buyer's primary security for indemnification claims or creates collection risk due to the need to pursue direct claims against sellers."
+    },
+    {
+      "id": "C-018",
+      "title": "ISSUE_005: Identifies knowledge qualifier narrowed from 'actual knowledge after reasonable inquiry' to 'actual knowledge'",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any narrowing of the knowledge qualifier from 'actual knowledge after reasonable inquiry' to 'actual knowledge.' In section 2.3, it states: 'No deterioration to bare actual knowledge or reduction below 4-person group observed based on available evidence.' This indicates the agent did not find the claimed narrowing, so the criterion is not satisfied."
+    },
+    {
+      "id": "C-019",
+      "title": "ISSUE_005: Identifies knowledge group reduced from 4 to 2 persons",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any reduction in the knowledge group from four to two persons. While it discusses the knowledge qualifier and knowledge group in section 2.3, it states that 'No deterioration to bare actual knowledge or reduction below 4-person group observed based on available evidence' and recommends maintaining the current structure. There is no mention of the knowledge group being reduced to only Anand and Deshmukh, or the removal of Michael Huang and Sonia Patel."
+    },
+    {
+      "id": "C-020",
+      "title": "ISSUE_005: Notes significance of excluding CFO and VP Engineering",
+      "verdict": "fail",
+      "reasoning": "The report does not mention the CFO or VP Engineering, nor does it discuss the significance of excluding these specific roles from the knowledge group. It only references a generic 4-person knowledge group without analyzing the practical impact of excluding CFO and VP Engineering."
+    },
+    {
+      "id": "C-021",
+      "title": "ISSUE_006: Identifies HSR filing threshold error in original draft",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention HSR filing thresholds, the $119.5M threshold, or any error in the original draft regarding HSR clearance requirements. The criterion is not addressed."
+    },
+    {
+      "id": "C-022",
+      "title": "ISSUE_006: Recommends HSR analysis or filing",
+      "verdict": "fail",
+      "reasoning": "The report does not mention HSR (Hart-Scott-Rodino) analysis, filing requirements, or the size-of-persons test anywhere in the document. There is no recommendation regarding HSR compliance."
+    },
+    {
+      "id": "C-023",
+      "title": "ISSUE_007: Identifies reverse break-up fee introduction at $6.375M",
+      "verdict": "fail",
+      "reasoning": "The report does not identify that the Seller's markup introduces a reverse break-up fee of $6.375M. Instead, in section 6.3, it lists the reverse break-up fee as a 'Nice-to-Have Concession' that the buyer can concede (i.e., the buyer paying the seller), with a maximum of 3% EV ($3.825M), and notes that the original draft had no such provision. This describes a buyer-paid reverse break-up fee, not a seller-introduced one at 5% EV ($6.375M). The criterion is not satisfied."
+    },
+    {
+      "id": "C-024",
+      "title": "ISSUE_007: Notes RBF exceeds playbook maximum of 3%",
+      "verdict": "pass",
+      "reasoning": "The report states in section 6.3 that a reverse break-up fee of 5% EV exceeds the playbook's maximum of 3% EV ($3.825M), noting it as a nice-to-have concession that can be traded for value elsewhere, which satisfies the criterion."
+    },
+    {
+      "id": "C-025",
+      "title": "ISSUE_008: Identifies Section 338(h)(10) election prohibition",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any explicit prohibition on Section 338(h)(10) election in the seller's markup. While Section 7 mentions 'Prohibition of 338(h)(10) election without deal partner approval' as an escalation trigger not observed, this indicates the absence of such a prohibition, not its presence. The criterion requires identification of an added prohibition, which is not found in the output."
+    },
+    {
+      "id": "C-026",
+      "title": "ISSUE_008: Explains tax significance of 338(h)(10) prohibition",
+      "verdict": "fail",
+      "reasoning": "The report mentions the 338(h)(10) election prohibition in sections 7 and 8 but does not explain its tax significance (stepped-up basis, depreciation/amortization benefits) or quantify the potential tax benefits lost (estimated $8-12M present value)."
+    },
+    {
+      "id": "C-027",
+      "title": "ISSUE_009: Identifies non-compete reduced from 3 years to 18 months",
+      "verdict": "fail",
+      "reasoning": "The report does not identify a reduction of the founder non-compete duration from 3 years to 18 months. Instead, it states that no reduction below 2 years duration was observed and that the current 3-year term exceeds requirements, with a suggestion to consider negotiating to 2 years in exchange for other concessions. There is no mention of the seller's markup reducing the non-compete to 18 months."
+    },
+    {
+      "id": "C-028",
+      "title": "ISSUE_009: Identifies geographic scope narrowed to five states",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any narrowing of the non-compete geographic scope to five states (Illinois, California, New York, Texas, and Florida). Instead, it states that no state-limited geography was observed and that the nationwide scope remains acceptable per the playbook."
+    },
+    {
+      "id": "C-029",
+      "title": "ISSUE_009: Notes playbook requires minimum 2-year non-compete",
+      "verdict": "pass",
+      "reasoning": "The report references the playbook threshold for non-compete duration: 'Non-Compete Duration: 3 years original \u2192 2 years (for sellers receiving >$20M) acceptable' and notes that founders receive >$20M each, so a 2-year term would be acceptable. It also states that the current 3-year term exceeds requirements, implying awareness of the 2-year minimum. The criterion is satisfied."
+    },
+    {
+      "id": "C-030",
+      "title": "ISSUE_009: Quantifies founder consideration exceeding $20M threshold",
+      "verdict": "pass",
+      "reasoning": "The report explicitly quantifies founder consideration: Rajesh Anand receives $66.3M (52% of $127.5M) and Priya Deshmukh receives $35.7M (28% of $127.5M), both exceeding the $20M threshold, and references this in the non-compete analysis section."
+    },
+    {
+      "id": "C-031",
+      "title": "ISSUE_010: Identifies dispute resolution changed to arbitration",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any change in dispute resolution to arbitration, nor does it mention AAA arbitration seated in Chicago. Section 7 discusses escalation triggers not observed, including 'Chicago arbitration without expanded discovery' as something not observed, implying no such change was found. The report fails to identify the required dispute resolution change."
+    },
+    {
+      "id": "C-032",
+      "title": "ISSUE_010: Notes playbook preference for Delaware Chancery",
+      "verdict": "fail",
+      "reasoning": "The report does not reference the playbook's preference for litigation in Delaware Court of Chancery for M&A disputes. While it mentions Delaware governing law and forum selection, it does not specifically note the playbook's strong preference for Delaware Chancery Court."
+    },
+    {
+      "id": "C-033",
+      "title": "ISSUE_010: Discusses disadvantages of arbitration vs. litigation",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss any specific disadvantages of arbitration compared to Delaware Chancery litigation, such as lack of appeal rights, limited discovery, or loss of access to Delaware M&A jurisprudence. While it mentions preferences for Delaware governing law and forum selection, it does not analyze or critique arbitration's disadvantages relative to litigation."
+    },
+    {
+      "id": "C-034",
+      "title": "ISSUE_011: Identifies customer consent downgraded from closing condition to covenant",
+      "verdict": "fail",
+      "reasoning": "The report does not identify any downgrade of customer consent from a closing condition to a post-closing covenant, nor does it mention the three largest customers (Northland Health Systems, Greystone Financial Corp, Summit Logistics Group) or a change to 'reasonable best efforts.' The analysis of customer consent conditions in Section 4.1 states that no changes were observed and that the Orion Data Consortium License consent remains a closing condition, which is unrelated to the specific criterion."
+    },
+    {
+      "id": "C-035",
+      "title": "ISSUE_011: Quantifies revenue at risk from customer consent change",
+      "verdict": "fail",
+      "reasoning": "The report does not quantify the revenue at risk from customer consent change. It mentions the Orion Data Consortium License with a $3.4M annual fee but does not provide the combined ARR of $22.4M from three customers or the percentage of total revenue ($64.2M)."
+    },
+    {
+      "id": "C-036",
+      "title": "ISSUE_012: Identifies drop-dead date shortened by 30 days",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify any shortening of the drop-dead date from September 30, 2025 to August 31, 2025. Instead, it states that no acceleration of the drop-dead date beyond September 15, 2025 was observed, and the current September 30, 2025 drop-dead date is acceptable. There is no mention of a 30-day reduction to August 31, 2025."
+    },
+    {
+      "id": "C-037",
+      "title": "ISSUE_012: Notes timing risk with HSR and/or reverse break-up fee",
+      "verdict": "fail",
+      "reasoning": "The report does not discuss timing risk related to HSR filing requirements or the reverse break-up fee in connection with the shortened drop-dead date. While it notes the drop-dead date threshold (Sept 15, 2025 acceptable, earlier is walk-away), it does not analyze how a shortened timeline could create risk with HSR waiting periods or increase pressure related to the reverse break-up fee."
+    },
+    {
+      "id": "C-038",
+      "title": "ISSUE_013: Flags GPLv3 open-source copyleft risk",
+      "verdict": "fail",
+      "reasoning": "The report does not mention any GPLv3-licensed open-source components, copyleft risks, or proprietary source code disclosure concerns related to ForgeIQ or any open-source software. The criterion is not addressed."
+    },
+    {
+      "id": "C-039",
+      "title": "ISSUE_013: Recommends adding open-source representations or schedule",
+      "verdict": "fail",
+      "reasoning": "The report does not mention open-source representations, schedules, or any recommendation to add open-source components, license types, or integration methods to the SPA. There is no analysis or suggestion related to open-source software risks or protections."
+    },
+    {
+      "id": "C-040",
+      "title": "ISSUE_014: Identifies data privacy rep qualified with materiality",
+      "verdict": "fail",
+      "reasoning": "The report does not mention data privacy representations, materiality qualifiers, or disclosure schedule references related to data security incidents. No analysis of this specific provision is present in the output."
+    },
+    {
+      "id": "C-041",
+      "title": "ISSUE_014: Connects data privacy change to September 2023 incident",
+      "verdict": "fail",
+      "reasoning": "The report does not mention any data privacy qualification, schedule deletion, or the September 2023 data security incident involving 14,000 PII records. There is no connection made between such a change and the known incident, nor any discussion of regulatory risk from undisclosed pre-closing incidents."
+    },
+    {
+      "id": "C-042",
+      "title": "ISSUE_015: Identifies R&W survival period reduced from 18 to 12 months",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not identify a reduction of the general R&W survival period from 18 to 12 months. Instead, it states that no reduction below 15 months was observed and that the current 18-month term exceeds the minimum acceptable threshold of 15 months per the playbook. There is no mention of a 12-month survival period in the seller's markup or any analysis of such a reduction."
+    },
+    {
+      "id": "C-043",
+      "title": "ISSUE_015: Notes playbook minimum survival period of 15 months",
+      "verdict": "fail",
+      "reasoning": "The report does not mention a proposed 12-month survival period. It states the original is 18 months and the playbook minimum is 15 months, but does not note that 12 months falls below the minimum."
+    },
+    {
+      "id": "C-044",
+      "title": "Cover letter: Flags holdback recharacterization downplayed",
+      "verdict": "fail",
+      "reasoning": "The report does not mention or analyze any cover letter from the seller, nor does it flag any characterization of holdback recharacterization as a 'timing adjustment' or otherwise. The criterion specifically requires the report to note such a mischaracterization in the cover letter, which is absent from the output."
+    },
+    {
+      "id": "C-045",
+      "title": "Cover letter: Flags customer consent change mischaracterized",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or flag any mischaracterization in the seller's cover letter regarding the customer consent closing condition being described as 'conforming the agreement to commercial reality.' The criterion specifically requires this to be noted for a pass, and since it is absent, the output fails."
+    },
+    {
+      "id": "C-046",
+      "title": "Cover letter: Flags omission of knowledge qualifier narrowing",
+      "verdict": "fail",
+      "reasoning": "The report does not mention or flag any omission in the seller's cover letter regarding the knowledge qualifier. It only analyzes the markup's provisions and notes that no deterioration to the knowledge qualifier was observed based on available evidence, but it does not address whether the cover letter omitted mention of such narrowing."
+    },
+    {
+      "id": "C-047",
+      "title": "Cover letter: Flags omission of R&W survival reduction",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or flag any omission in the seller's cover letter regarding the reduction of the general R&W survival period from 18 to 12 months. The criterion specifically requires the report to note this omission, which is absent from the analysis."
+    },
+    {
+      "id": "C-048",
+      "title": "Cover letter: Flags 338(h)(10) prohibition described as 'standard'",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or flag any cover letter describing the Section 338(h)(10) prohibition as 'standard seller tax protection' or mischaracterizing it in any way. The criterion is not addressed in the report."
+    },
+    {
+      "id": "C-049",
+      "title": "Risk severity: Earnout rated Critical or High",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not rate the earnout introduction (ISSUE_001) as Critical or High severity. In section 6.3, the earnout is classified as a 'Nice-to-have' concession with tradable value, indicating a Low or Medium severity, not Critical or High as required for a pass."
+    },
+    {
+      "id": "C-050",
+      "title": "Risk severity: Holdback recharacterization rated Critical or High",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention ISSUE_004 or any holdback recharacterization, so it cannot be rated as Critical or High severity for that issue."
+    },
+    {
+      "id": "C-051",
+      "title": "Risk severity: Indemnification changes rated Critical or High",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not rate the indemnification changes (cap reduction, basket increase, tipping-to-true-deductible conversion) as Critical or High severity. Instead, it classifies them as acceptable deviations within negotiation range, with no escalation required, indicating a Medium or Low severity assessment."
+    },
+    {
+      "id": "C-052",
+      "title": "Risk severity: Customer consent downgrade rated Critical or High",
+      "verdict": "pass",
+      "reasoning": "The agent's output identifies customer consent closing conditions, specifically the Orion Data Consortium License, as a must-have item and notes that failure to obtain consent creates material risk to the ForgeIQ platform viability. Given that 34.9% of revenue is at risk, this aligns with a Critical or High severity rating for the downgrade of customer consents as a closing condition (ISSUE_011)."
+    },
+    {
+      "id": "C-053",
+      "title": "Response recommendation for earnout: Reject or Accept with Modification only",
+      "verdict": "pass",
+      "reasoning": "The report classifies earnout as a 'nice-to-have' concession and states it can be accepted only with restrictions (max 5% EV with approval), which aligns with accepting only with modification."
+    },
+    {
+      "id": "C-054",
+      "title": "Response recommendation for earnout: Notes deal partner approval required per playbook",
+      "verdict": "pass",
+      "reasoning": "The report states in section 6.3: 'Earnout: None [Verify] Max 5% EV ($6.375M) with approval Nice-to-have Can concede \u22645% EV with restrictions', which explicitly notes that deal partner approval is required per the playbook for the earnout recommendation."
+    },
+    {
+      "id": "C-055",
+      "title": "Response recommendation for holdback recharacterization",
+      "verdict": "pass",
+      "reasoning": "The report recommends retaining the holdback/escrow structure with setoff rights as a must-have (Priority 1) and identifies the holdback as a strong preference that can be modified only with economic offset, indicating rejection of elimination without alternative indemnification security."
+    },
+    {
+      "id": "C-056",
+      "title": "Response recommendation for NWC collar",
+      "verdict": "pass",
+      "reasoning": "The report does not mention a $500K collar; it states the original NWC collar is $200K (2.38% of NWC target) and that the acceptable range per the playbook is up to $252K (3.0% of $8.4M NWC target). It recommends accepting the current NWC collar structure, which is within the threshold, and does not accept a $500K collar."
+    },
+    {
+      "id": "C-057",
+      "title": "Response recommendation for non-compete",
+      "verdict": "fail",
+      "reasoning": "The report accepts the current 3-year non-compete duration as exceeding requirements and only suggests negotiating to 2 years in exchange for concessions, rather than rejecting the 18-month duration and proposing a minimum 2-year term as required. It does not address geographic scope narrowing in the context of an 18-month proposal."
+    },
+    {
+      "id": "C-058",
+      "title": "Response recommendation for reverse break-up fee",
+      "verdict": "pass",
+      "reasoning": "The report states that a reverse break-up fee is a 'nice-to-have' concession and that the buyer can concede \u22643% EV ($3.825M) if unavoidable, which aligns with the playbook maximum. It does not accept a 5% fee without modification."
+    },
+    {
+      "id": "C-059",
+      "title": "Correct equity value used throughout: $127.5M",
+      "verdict": "pass",
+      "reasoning": "The report consistently uses $127.5M as the equity value for percentage-based calculations, such as the indemnity cap (10% of EV = $12,750,000), deductible basket (0.75% EV = $956,250), and option pool dilution (1.2M shares \u00d7 $12.75/share = ~$15.3M), confirming the correct equity value is applied throughout."
+    },
+    {
+      "id": "C-060",
+      "title": "Correct consideration reconciliation for Seller's markup",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not state or imply the consideration structure under Seller's markup as $102M closing cash + $15.5M deferred consideration + $10M earnout = $127.5M. Instead, it references the original structure of $112M cash at closing + $15.5M holdback/escrow and notes no reduction in closing cash was observed, with no mention of an earnout or a $102M closing cash figure in the markup."
+    },
+    {
+      "id": "C-061",
+      "title": "ISSUE_015: Notes 12-month survival may miss first audit cycle",
+      "verdict": "fail",
+      "reasoning": "The report does not note that a 12-month R&W survival period may be insufficient due to breaches surfacing after the first audit cycle. While it discusses survival periods (e.g., recommending 15 months as acceptable and noting 18 months exceeds minimum), it does not raise the specific practical concern that 12 months may miss the first audit cycle for financial or tax representations."
+    },
+    {
+      "id": "C-062",
+      "title": "Cover letter: Flags omission of NWC collar widening",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not mention or flag any omission in the seller's cover letter regarding the NWC collar widening from $200K to $500K. The report discusses the NWC collar in Section 1.2 but does not reference a cover letter or note its omission of a widening to $500K."
+    }
+  ],
+  "run_id": "/Users/franciscohdb/Documents/claim-layer/benchmarks/direct_tool_results/corporate-ma__analyze-counterparty-spa-markup/direct_rag",
+  "task": "corporate-ma/analyze-counterparty-spa-markup",
+  "judge_model": "nvidia/nemotron-3-super-120b-a12b",
+  "scored_at": "2026-10-19T22:51:36.412539+00:00",
+  "cost": {
+    "input_tokens": 25554,
+    "output_tokens": 5211,
+    "wall_clock_seconds": 99.36
+  },
+  "doc_coverage": {
+    "documents_read": 0,
+    "total_documents": 0,
+    "documents_skipped": 0,
+    "documents_read_list": [],
+    "documents_skipped_list": []
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "task_id": "corporate-ma/analyze-counterparty-spa-markup",
+  "arm": "direct_rag",
+  "solver_model": "nvidia/nemotron-3-super-120b-a12b",
+  "rounds_used": 6,
+  "tool_calls": 5,
+  "input_tokens": 25554,
+  "output_tokens": 5211,
+  "total_tokens": 30765,
+  "wall_clock_seconds": 99.36,
+  "deliverable_chars": 18982,
+  "trace": [
+    {
+      "round": 1,
+      "tool": "list_documents",
+      "args": {},
+      "output_chars": 690
+    },
+    {
+      "round": 2,
+      "tool": "search_chunks",
+      "args": {
+        "query": "original SPA draft",
+        "filename_filter": "original-spa-draft.docx",
+        "top_k": 5
+      },
+      "output_chars": 6024
+    },
+    {
+      "round": 3,
+      "tool": "search_chunks",
+      "args": {
+        "query": "seller markup",
+        "filename_filter": "seller-markup-spa.docx",
+        "top_k": 5
+      },
+      "output_chars": 6731
+    },
+    {
+      "round": 4,
+      "tool": "search_chunks",
+      "args": {
+        "query": "negotiation playbook",
+        "filename_filter": "buyer-negotiation-playbook.docx",
+        "top_k": 10
+      },
+      "output_chars": 13231
+    },
+    {
+      "round": 5,
+      "tool": "read_chunk_window",
+      "args": {
+        "filename": "buyer-negotiation-playbook.docx",
+        "start_chunk": 37,
+        "num_chunks": 5
+      },
+      "output_chars": 6624
+    },
+    {
+      "round": 6,
+      "type": "forced_final_synthesis",
+      "chars": 18982
+    }
+  ]
+}
