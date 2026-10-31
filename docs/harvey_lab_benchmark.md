@@ -1,3 +1,9 @@
+> [!NOTE]
+> **ClaimLayer v3.0 Update (October 2026):** Notice in Table 2.2 below that passive structured retrieval (`direct_claimlayer` without an active completion gate) raised Corporate M&A (`+30.65 pp`) and Banking (`+45.45 pp`) yet left **Structured Finance (`compare-offering-memorandum-against-indenture`) unchanged at `11/37` (`+0.00 pp`)**. Solving premature stopping, authority inversion, and the 80% human supervision bottleneck motivated refactoring ClaimLayer into a **zero-dependency `<1 ms` computable verification gate (`verify()` -> `PASS` / `RETRY` / `ESCALATE`)**.
+> - **v3.0 Harness² Case 1 Showcase:** [`examples/harness2_securitization/`](../examples/harness2_securitization/)
+> - **v3.0 Developer Implementation Guide:** [`docs/IMPLEMENTATION_GUIDE.md`](./IMPLEMENTATION_GUIDE.md)
+> - **Historical v2.1 Study A & Study B Scripts/Artifacts:** Preserved intact under Git tag [`v2.1-study-a-archive`](https://github.com/mathmentorAI/claim-layer/tree/v2.1-study-a-archive).
+
 # Empirical Legal Evaluation on Harvey Legal Agent Benchmark (LAB): Controlled Direct LLM Tool-Calling (Study A) and Autonomous Agent Harness Integration (Study B)
 
 **Date:** October 20, 2026  

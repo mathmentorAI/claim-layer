@@ -1,24 +1,45 @@
-from .api import ClaimLayer
-from core.query_layer import LLMQueryRouter
-from claim_layer.semantic.normalization import (
-    LLMValueNormalizer,
-    clear_canonical_overrides,
-    normalize_entity_name,
-    normalize_predicate_name,
-    register_canonical_value,
-    register_entity_alias,
-    register_predicate_alias,
+"""ClaimLayer v3: Deterministic computable verification for AI agent outputs."""
+
+from claimlayer.ledger import Ledger
+from claimlayer.mcp_server import MCPVerificationServer
+from claimlayer.models import (
+    Assertion,
+    ConflictDiff,
+    FactRecord,
+    Issue,
+    Policy,
+    ResolutionRecord,
+    Source,
+    Verdict,
+    VerificationReceipt,
 )
+from claimlayer.receipt import RECEIPT_SCHEME, verify_receipt
+from claimlayer.verifiers.diff import (
+    SectionDivergence,
+    build_comparison_policy,
+    extract_divergent_sections,
+)
+from claimlayer.verify import verify
+
+__version__ = "3.0.0"
 
 __all__ = [
-    "ClaimLayer",
-    "LLMQueryRouter",
-    "LLMValueNormalizer",
-    "register_canonical_value",
-    "register_entity_alias",
-    "normalize_entity_name",
-    "register_predicate_alias",
-    "normalize_predicate_name",
-    "clear_canonical_overrides",
+    "Assertion",
+    "ConflictDiff",
+    "FactRecord",
+    "Issue",
+    "Ledger",
+    "MCPVerificationServer",
+    "Policy",
+    "RECEIPT_SCHEME",
+    "ResolutionRecord",
+    "SectionDivergence",
+    "Source",
+    "Verdict",
+    "VerificationReceipt",
+    "__version__",
+    "build_comparison_policy",
+    "extract_divergent_sections",
+    "verify",
+    "verify_receipt",
 ]
-

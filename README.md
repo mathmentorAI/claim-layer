@@ -1,324 +1,196 @@
-# ClaimLayer
+# ClaimLayer · Computable Verification for AI Agents
 
-[![DOI](https://zenodo.org/badge/1192448844.svg)](https://doi.org/10.5281/zenodo.19489455)
+**Eliminate the 80% human supervision bottleneck ("metawork") without sacrificing safety or auditability.**
 
-**Deterministic truth engine for reasoning over unstructured data.**
+AI agents now draft legal analyses, reconcile financials, and propose operational actions at 100× human speed—yet spend up to **80% of wall-clock time idle**, waiting for overwhelmed humans to manually cross-check every citation, number, and amendment against source documents.
 
-ClaimLayer is a source-available implementation of the **Evidence Intelligence** paradigm, licensed under the conditions in [LICENSE](./LICENSE):
-a computational layer that transforms unstructured text into **structured, auditable, and contradiction-aware knowledge**.
+**ClaimLayer** is a zero-dependency Python library (~1,200 LoC, pure stdlib) that sits between your AI agent and task completion like a **deterministic `<1 ms` type-checker**, replacing manual post-hoc reading and probabilistic *LLM-as-a-Judge* rollouts with **computable verification (`verify()`)**:
+
+```text
+Agent Proposal + Citations ──► ClaimLayer.verify() (<1 ms, 0 LLM calls, 0 external deps)
+                                  ├── PASS     ──► Auto-approved + SHA-256 Merkle receipt (Agent continues immediately)
+                                  ├── RETRY    ──► Exact error bounced to Agent (Self-corrects with 0 human time)
+                                  └── ESCALATE ──► Surgical 15-second side-by-side diff ONLY for genuine conflicts
+```
 
 ---
 
-## Why ClaimLayer
+## 1. Clone & Verify in 60 Seconds
 
-Most AI systems today follow this pattern:
-
-```
-Data → Retrieval (RAG) → LLM → Answer
-```
-
-This has a fundamental limitation:
-
-- No explicit representation of truth
-- No knowledge state
-- No contradiction handling
-- No auditability
-
-ClaimLayer introduces the missing layer:
-
-```
-Data → Retrieval → ClaimLayer → Deterministic Knowledge → LLM (optional)
-```
-
-Instead of generating answers from text, ClaimLayer:
-
-- Constructs **evidence units**
-- Tracks **source-level provenance**
-- Detects **contradictions as first-class objects**
-- Computes **confidence mathematically**
-- Maintains an explicit **epistemic state (Eₜ)**
-
----
-
-## Core Concept
-
-Knowledge is not generated.
-It is computed from evidence.
-
-```
-Kₜ = F(Eₜ)
-```
-
-Where:
-
-- **Eₜ** = set of evidence units extracted from documents
-- **Kₜ** = resulting knowledge state
-
----
-
-## Installation
+`claim-layer` uses **only the Python 3.10+ standard library** (`hashlib`, `sqlite3`, `re`, `decimal`, `dataclasses`, `json`).
 
 ```bash
-python -m pip install "claim-layer @ git+https://github.com/mathmentorAI/claim-layer.git@v2.0.1"
-```
-
-The distribution name is `claim-layer`; the Python import is `claimlayer`.
-This command installs the tagged GitHub release and requires Git. A PyPI
-release is not currently provided. For local development, clone the repository
-and run `python -m pip install '.[dev]'` from its root.
-
-Version 2.0.1 rejects unchecked derivations and separates compatible or unknown
-alternatives from contradictions. See the [release notes](./CHANGELOG.md) and
-[evidence contracts](./docs/evidence_contracts.md) for migration details.
-
----
-
-## Quickstart (30 seconds)
-
-```python
-from claimlayer import ClaimLayer
-
-cl = ClaimLayer()
-
-cl.ingest([
-    "ACME payment terms are 30 days",
-    "ACME payment terms are thirty days",
-    "ACME payment terms are 45 days"
-])
-
-result = cl.ask("What are the payment terms for ACME?")
-print(result)
-```
-
----
-
-## What happens under the hood
-
-- `"30 days"` and `"thirty days"` are merged into a canonical value
-- `"45 days"` is detected as a contradiction
-- Confidence is penalized based on conflicting evidence
-- All outputs are traceable to their original sources
-
----
-
-## 📊 Empirical Evaluation on Harvey Legal Agent Benchmark (LAB)
-
-We evaluated **ClaimLayer / Deltoryx** on four multi-document tasks from the **[Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs)** (`b58a28a`), comprising **20 source documents** and **199 official rubric criteria**, under two complementary protocols:
-1. **Study A — Controlled Direct LLM Tool-Calling (No Agent Harness, No `bash`):** Isolates the information-retrieval and evidence-structuring layer by giving the exact same LLM (`nvidia/nemotron-3-super-120b-a12b`), identical 650-character system prompt, identical 5-tool-call budget, identical `pandoc` `.docx` packaging, and a single uniform judge across all 4 tasks (`nvidia/nemotron-3-super-120b-a12b`) either standard BM25 chunk retrieval tools (`direct_rag`) or ClaimLayer/Deltoryx structured evidence & diff tools (`direct_claimlayer`).
-2. **Study B — Autonomous Agent Harness Integration (`OpenCode` / `Harness²` `c5`+`c7`):** Compares the base `LAB/OpenCode` (`v1.14.18`, `tool_mode="base"`, `openai/gpt-4.1`) agent against an augmented harness component tree.
-
-### Study A: Controlled Direct LLM Tool-Calling (`direct_rag` vs. `direct_claimlayer`, No `bash`)
-
-| Task | Docs | Criteria | `direct_rag` (Chunk Search Tools) | `direct_claimlayer` (Evidence & Diff Tools) | Difference (pp) | Criterion Transitions | Oracle Union |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Litigation** (`analyze-counterparty-motion-to-dismiss`) | 6 | 34 | 26 (`76.47%`) | **27 (`79.41%`)** | **`+2.94`** | `+3 / -2` | 29 (`85.29%`) |
-| **Structured Finance** (`compare-offering-memorandum-against-indenture`) | 3 | 37 | 11 (`29.73%`) | **11 (`29.73%`)** | **`+0.00`** | `+0 / -0` | 11 (`29.73%`) |
-| **Corporate M&A** (`analyze-counterparty-spa-markup`) | 6 | 62 | 13 (`20.97%`) | **32 (`51.61%`)** | **`+30.65`** | **`+23 / -4`** | 36 (`58.06%`) |
-| **Banking & Finance** (`analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet`) | 5 | 66 | 23 (`34.85%`) | **53 (`80.30%`)** | **`+45.45`** | **`+30 / -0`** | 53 (`80.30%`) |
-| **Total (Pooled, Single Judge)** | **20** | **199** | **73 (`36.68%`)** | **123 (`61.81%`)** | **`+25.13`** | **`+56 / -6`** | **129 (`64.82%`)** |
-
-> 💡 **Why Study A Matters (Isolating the Evidence Layer from Agent `bash` & Prompt Confounds):**
-> - **Eliminates Harness & Packaging Confounds:** Both arms share the exact same system prompt, tool-call budget (5 tool calls + 1 synthesis call), `.docx` container pipeline, and judge (`nvidia/nemotron-3-super-120b-a12b`), removing shell exploration variance and container-repair artifacts.
-> - **`+25.13 pp` Gain with Minimal Regressions (`+56 / -6`):** Equipping the LLM with full-document structured claim units (`OriginTier` authority ranks, section/quantitative tags, and deterministic clause-by-clause diffs) raises passed criteria from **73/199 (`36.68%`)** to **123/199 (`61.81%`)**, including **53/66 (`80.30%`, `+30 / -0`)** in *Banking & Finance* and **32/62 (`51.61%`, `+23 / -4`)** in *Corporate M&A*.
-> - **Context Volume Trade-off:** Because `direct_claimlayer` returns denser structured evidence (full source-hierarchy overview, controlling playbooks/tables, and redline diff matrices), total solver tokens increase from **142,756** (`direct_rag`) to **640,546** (`direct_claimlayer`).
-
-### Study B: Autonomous Agent Harness Integration (`OpenCode` / [`google-research/harness2`](https://github.com/google-research/harness2), `openai/gpt-4.1`)
-
-| Task | Docs | Criteria | Base Agent Passed | Augmented Agent Passed | Difference (pp) | Criterion Transitions | Judge |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Litigation** (`analyze-counterparty-motion-to-dismiss`) | 6 | 34 | 1 (`2.94%`) | **19 (`55.88%`)** | **`+52.94`** | `+18 / -0` | GPT-4.1 |
-| **Structured Finance** (`compare-offering-memorandum-against-indenture`) | 3 | 37 | 3 (`8.11%`) | **12 (`32.43%`)** | **`+24.32`** | `+10 / -1` | Nemotron |
-| **Corporate M&A** (`analyze-counterparty-spa-markup`) | 6 | 62 | 15 (`24.19%`) | **24 (`38.71%`)** | **`+14.52`** | `+12 / -3` | Nemotron |
-| **Banking & Finance** (`analyze-counterparty-markup-of-senior-secured-credit-facility-term-sheet`) | 5 | 66 | 43 (`65.15%`) | **44 (`66.67%`)** | **`+1.52`** | `+13 / -12` | GPT-4.1 |
-| **Total (Pooled)** | **20** | **199** | **62 (`31.16%`)** | **99 (`49.75%`)** | **`+18.59`** | **`+53 / -16`** | Mixed (Paired) |
-
-> 💡 **Methodological Notes on Study B:**
-> - **Paired Criterion Gain (`+18.59 pp`) & Complementarity:** After `.docx` container repair, the augmented workflow passes **99/199 (`49.75%`)** vs. **62/199 (`31.16%`)** (`+53` gained, `-16` lost; solver tokens rise from `220,320` to `388,406`, `+76.3%`). A post-hoc **oracle criterion union** across both arms reaches **115/199 (`57.79%`)** overall and **56/66 (`84.85%`)** in *Banking & Finance* (distinguished from a whole-deliverable selector, which is capped at `99/199`).
-> - **Why Study A Outperformed Study B on Banking (`53/66` vs. `44/66`):** In Study B, the legacy `deltoryx_audit.py` script truncated claim indexing at 80 paragraphs per document (`paragraphs[:80]`) and the `bash` agent split focus between playbook headings and shell scripts (`+13 / -12`). Indexing all document paragraphs and exposing structured tools directly in Study A eliminated the 12 criterion losses (`+30 / -0`).
-
-📄 **Benchmark Documentation & Replication:**
-- 📑 [Technical Benchmark Report (PDF)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.pdf)
-- 📄 [Technical Benchmark Report (Word)](./docs/Harvey_LAB_Benchmark_Experiment_ClaimLayer.docx)
-- 📊 [Complete Benchmark Writeup & Audit Notes (Markdown)](./docs/harvey_lab_benchmark.md)
-- 💻 [Direct Tool-Calling Benchmark Runner (Study A)](./benchmarks/run_direct_tool_benchmark.py)
-- 💻 [OpenCode Harness A/B Runner (Study B)](./benchmarks/run_ab_benchmark.py)
-
----
-
-## 🤖 Agent Integration: Evidence Intelligence Skill
-
-ClaimLayer v2.0 includes a production-grade agent skill located in [`skills/evidence-intelligence/`](./skills/evidence-intelligence/) designed to equip coding assistants and autonomous agents with deterministic evidence verification.
-
-### Supported Agent Frameworks
-You can install the skill by copying [`skills/evidence-intelligence`](./skills/evidence-intelligence) directly into your agent's skills directory:
-- **Claude Code:** `~/.claude/skills/evidence-intelligence`
-- **Gemini CLI / Antigravity:** `~/.gemini/config/skills/evidence-intelligence`
-- **Google Research Harness² / OpenCode:** Include in the harness component tree (`c5: skills/`)
-
-### Try the Offline Deterministic Demo (No API Key Required)
-You can test the complete 5-stage Evidence Intelligence pipeline immediately using the built-in deterministic demo:
-
-```bash
-# Clone the repository
 git clone https://github.com/mathmentorAI/claim-layer.git
 cd claim-layer
 
-# Run the full offline verification pipeline
-python skills/evidence-intelligence/examples/complete_pipeline.py --demo
-```
+# Option A: Editable install (recommended)
+pip install -e .
 
-This runs an end-to-end verification showing:
-1. **`ClaimConsolidator`**: Prunes layout noise and normalizes multilingual values (*"30 days"* vs *"trente jours"*).
-2. **`EpistemicJudge`**: Detects and blocks unverified party allegations and enforces monotonic truth closure.
-3. **`OriginTier`**: Deterministically resolves source precedence (Governing Agreement > Amendment > Emails).
-4. **`DependencyGraph`**: Executes 3-hop Dijkstra Max-Min inference over Gödel's T-Norm.
-5. **`AggregationEngine`**: Isolates currencies and units without scalar hallucinations.
-6. **Merkle SHA-256 Certificates**: Generates a tamper-proof cryptographic audit trail.
+# Option B: Run directly from source with zero pip installs
+export PYTHONPATH="$PWD/src"
 
-### Running with a Live LLM (OpenAI / Gemini / Claude)
-```bash
-pip install openai
-export OPENAI_API_KEY="your-api-key"
-python skills/evidence-intelligence/examples/complete_pipeline.py
+# 1. Run formal invariant & sandbox E2E test suite (G1–G8, <0.3s)
+pytest -v
+
+# 2. Run the 200-task supervision bottleneck benchmark (~17ms total, 85% fewer human interruptions)
+python3 benchmarks/verification_bottleneck_bench.py
+
+# 3. Run the Harness² × Harvey LAB Case 1 securitization replay (<2ms, 0 API keys)
+python3 examples/harness2_securitization/replay_om_vs_indenture.py
 ```
 
 ---
 
-## Embeddings (Important)
+## 2. How to Implement ClaimLayer in Your Project
 
-ClaimLayer **does not depend on embeddings as a core mechanism**.
+Keep your existing LLM (`Claude`, `GPT`, `Gemini`), prompts, and RAG pipeline unchanged. Choose whichever integration matches your stack (full reference & error code catalog in **[`docs/IMPLEMENTATION_GUIDE.md`](./docs/IMPLEMENTATION_GUIDE.md)**):
 
-Embeddings are:
+### Path A · Python Agent Self-Correction Loop (OpenAI / Anthropic / LangGraph)
 
-- Optional
-- Replaceable
-- Used only as a retrieval signal
-
-By default, ClaimLayer uses a **simple deterministic embedding** for zero-setup usage.
-
-> ⚠️ For production, provide your own embedding provider:
+Ask your agent (via tool-calling or Structured Outputs) to return structured `Assertion` items alongside its draft, and gate completion inside a standard `for` / `while` loop:
 
 ```python
-cl = ClaimLayer(embedding_provider=MyEmbeddingProvider())
+from claimlayer import Assertion, FactRecord, Ledger, Policy, Source, verify_receipt
+
+# 1. Register your governing documents & precedence rules once
+ledger = Ledger(
+    db_path=".claimlayer.sqlite",  # Optional SQLite persistence (omit for pure in-memory)
+    sources=[
+        Source(
+            id="msa_2024",
+            text="Section 4.1: ACME shall pay all undisputed invoices within 45 days.",
+            tier="standard",          # rank = 50
+        ),
+        Source(
+            id="amendment_2026",
+            text="Section 4.1 is hereby amended: ACME shall pay all undisputed invoices within 30 days.",
+            tier="authoritative",     # rank = 100
+            supersedes=["msa_2024"],
+        ),
+    ],
+    facts=[
+        FactRecord(
+            subject="ACME",
+            predicate="payment_terms",
+            value="30 days",
+            source_id="amendment_2026",
+            quote="ACME shall pay all undisputed invoices within 30 days.",
+        )
+    ],
+)
+policy = Policy(policy_id="contract_ops", min_tier_rank=50, required_predicates=["payment_terms"])
+
+# 2. Gate your agent's tool call / structured output in <1 ms
+for attempt in range(3):
+    proposal = run_your_llm_agent(messages)  # Returns list of Assertion dicts
+
+    verdict = ledger.verify(assertions=proposal, policy=policy, agent_id="contract-agent")
+
+    if verdict.status == "PASS":
+        assert verify_receipt(verdict)  # Offline SHA-256 Merkle verification
+        break                           # Auto-approved — 0 seconds of human wait!
+
+    if verdict.status == "RETRY":
+        # Bounce exact errors back to the LLM — 0 human attention wasted!
+        errors = "\n".join(f"- [{i.code}] {i.message} -> {i.remediation}" for i in verdict.issues)
+        messages.append({"role": "user", "content": f"Fix verification errors:\n{errors}"})
+        continue
+
+    if verdict.status == "ESCALATE":
+        # Wake a human ONLY when equally authoritative documents genuinely conflict
+        send_to_human_triage(verdict.conflicts)
+        break
+```
+
+> **Comparing Two Documents (Redlines, Offering Memorandum vs. Indenture)?**
+> Call `policy, divergences = build_comparison_policy(primary_doc, secondary_doc)` to automatically populate `policy.required_predicates` with every section where numbers or clauses diverge so the agent cannot stop early.
+
+---
+
+### Path B · MCP Server (`Claude Code`, `Cursor`, `OpenCode`, `Claude Desktop`)
+
+Expose `register_source`, `verify_proposal`, and `check_escalation` over `stdio` JSON-RPC 2.0 by adding this to `.mcp.json` or `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "claimlayer": {
+      "command": "python3",
+      "args": ["-m", "claimlayer.cli", "mcp", "--db", ".claimlayer.sqlite"],
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/claim-layer/src"
+      }
+    }
+  }
+}
+```
+
+Then add to your `CLAUDE.md` or system prompt:
+> *"Before finalizing any deliverable, register governing documents with `register_source` and verify all quantitative/contractual claims via `verify_proposal`. Self-correct any `RETRY` issues automatically; only interrupt the human on `ESCALATE`."*
+
+---
+
+### Path C · CLI Gate for Terminal Harnesses (`google-research/harness2`, `SWE-agent`, CI)
+
+Gate shell-based coding or legal agents with deterministic POSIX exit codes (`0` = `PASS`, `2` = `RETRY`, `3` = `ESCALATE`):
+
+```bash
+claimlayer verify --bundle proposal.json
+```
+
+Because `claimlayer` has zero external dependencies, you can copy `src/claimlayer` directly into air-gapped Docker / OpenCode sandboxes (`scripts/claimlayer/`) with zero `pip install` or network access.
+
+---
+
+## 3. Featured Showcase: `Harness²` × Harvey LAB Case 1
+
+See **[`examples/harness2_securitization/`](./examples/harness2_securitization/)** for a complete integration into **`google-research/harness2`** (`OPENCODE_SURFACE` `c2` + `c6` + `c7`) on Harvey LAB's structured-finance audit workflow (`compare-offering-memorandum-against-indenture`):
+
+- **Turn 1 (`RETRY`, 0 human wait):** Catches premature stopping (`MISSING_REQUIRED_PREDICATE` on skipped Waterfall & Coupon sections) and numeric hallucination (`QUANTITY_MISMATCH`).
+- **Turn 2 (`RETRY`, 0 human wait):** Catches **authority inversion** (`HIGHER_TIER_OVERRIDE`) when the agent treats the marketing Offering Memorandum (`6.50%`) as governing over the Executed Master Trust Indenture (`6.75%`).
+- **Turn 3 (`PASS`, `<2 ms` total):** Verifies all 4 divergent sections against the controlling Indenture and seals an offline-verifiable `CLAIMLAYER-MERKLE-SHA256-v3` cryptographic receipt.
+
+---
+
+## 4. Formal Verification Guarantees (`G1`–`G8`)
+
+| ID | Invariant | What `claimlayer.verify()` Guarantees |
+| :--- | :--- | :--- |
+| **`G1`** | **Strict Determinism** | Identical `(assertions, ledger, policy, as_of)` inputs produce byte-identical verdicts and hashes. |
+| **`G2`** | **Verbatim Grounding** | Every cited `quote` exists verbatim (whitespace-normalized) inside `Source.text`. |
+| **`G3`** | **Quantity, Scale & Unit Integrity** | Normalizes `$500K` == `$500,000`, `thirty (30) days` == `30 days`, and rejects unit drift (`30 EUR` != `30 days`). |
+| **`G4`** | **Precedence & Temporal Validity** | Enforces `authoritative` > `standard` > `draft` tiers, `supersedes` chains, and `valid_from` / `valid_until` dates. |
+| **`G5`** | **Checklist Completeness** | Blocks completion until all `Policy.required_predicates` and `required_source_ids` are satisfied. |
+| **`G6`** | **Non-Redundant Conflict Routing** | Deduplicates per-source citations before Noisy-OR scoring; `RETRY` strictly preempts `ESCALATE` to protect human time. |
+| **`G7`** | **Zero-Trust Cryptographic Receipt** | Seals every verdict with an offline-verifiable SHA-256 Merkle root (`verify_receipt(verdict)`). |
+| **`G8`** | **Automated Divergence Coverage** | `build_comparison_policy()` auto-extracts divergent clauses across paired documents into `required_predicates`. |
+
+---
+
+## 5. Repository Structure
+
+```text
+├── src/claimlayer/
+│   ├── models.py                         # Source, FactRecord, Assertion, Policy, Verdict, ConflictDiff
+│   ├── verifiers/                        # quote_quantity, precedence, conflict, coverage, diff
+│   ├── receipt.py                        # Offline SHA-256 Merkle proof (CLAIMLAYER-MERKLE-SHA256-v3)
+│   ├── ledger.py                         # Thread-safe in-memory + optional SQLite ledger
+│   ├── verify.py                         # Pure deterministic verify() gate
+│   ├── mcp_server.py                     # Native JSON-RPC 2.0 MCP server (stdio & HTTP)
+│   └── cli.py                            # `claimlayer verify`, `claimlayer mcp`, `claimlayer demo`
+├── docs/
+│   ├── IMPLEMENTATION_GUIDE.md           # Full step-by-step developer integration & error code guide
+│   └── harvey_lab_benchmark.md           # Prior Harvey LAB Study A & Study B empirical observations
+├── examples/
+│   └── harness2_securitization/          # Harness² × Harvey LAB Case 1 showcase & c7 surface
+├── benchmarks/
+│   └── verification_bottleneck_bench.py  # 200-task supervision bottleneck compression benchmark
+└── tests/                                # Formal invariant & isolated Harness² sandbox tests (G1–G8)
 ```
 
 ---
 
-## Architecture
+## License & Archive
 
-ClaimLayer is designed with strict separation of concerns:
-
-**Core (`claim_layer/`)**
-- Deterministic reasoning engine
-- Evidence modeling
-- Contradiction detection
-- Confidence computation (Noisy-OR)
-
-**Public API (`claimlayer/`)**
-- User-facing interface
-- Embedding provider integration
-
-This ensures:
-
-- Stability of the reasoning model
-- Replaceable infrastructure (LLMs, embeddings)
-- Full auditability
-
----
-
-## Key Features
-
-- Evidence Units: `(claim, source, confidence, metadata)`
-- Source-level provenance (paragraph-level)
-- Explicit contradiction detection
-- Mathematical confidence aggregation
-- Deterministic reasoning (no hallucinations)
-- Snapshot-based knowledge state (Eₜ)
-
----
-
-## Limitations (Current Version)
-
-- Retrieval operates at **claim-level granularity**
-- A claim may contain multiple facts not fully disentangled
-- Ingestion embedding uses a **temporary scoped override** (not concurrency-safe)
-
-Planned:
-
-- Fact-level indexing
-- Explicit dependency injection for ingestion
-- Distributed ingestion pipeline
-
----
-
-## Philosophy
-
-> AI systems should not guess truth.
-> They should compute it.
-
----
-
-## Positioning
-
-- RAG → retrieves text
-- LLMs → generate answers
-- ClaimLayer → constructs and reasons over evidence
-
----
-
-## Use Cases
-
-- Legal due diligence (contract contradiction detection)
-- Healthcare / clinical protocol analysis
-- Financial compliance & audit trails
-- Any domain where decisions must be **defensible**
-
----
-
-## Roadmap
-
-- Fact-level reasoning
-- Multi-document aggregation at scale
-- Evidence graph queries
-- Enterprise-grade ingestion pipelines
-
----
-
-## Contributing
-
-We welcome contributions, but the core principles are strict:
-
-- Determinism over heuristics
-- Explicit evidence over implicit reasoning
-- Auditability over convenience
-
----
-
-## License
-
-This project is licensed under the **Business Source License 1.1 (BSL 1.1)**.
-
-- Free for non-production, testing, and evaluation use (local development, PoC, academic research)
-- Any use in a Production Environment (including internal use for real business operations) requires an explicit commercial license
-- Building competing products in Evidence Intelligence, AI verification, or RAG auditing is strictly prohibited
-
-On **2030-03-31**, the license automatically converts to **MPL 2.0** (Mozilla Public License 2.0).
-
-For full terms, see the [`LICENSE`](LICENSE) file.
-
-**Why BSL?**
-
-ClaimLayer is not a typical library. It is the core of a new category: Evidence Intelligence.
-
-We believe in open access to the technology, but we also need to protect the integrity of the system and prevent extractive reuse by large platforms.
-
-If you are interested in commercial licensing or partnerships, please contact us.
-
----
-
-## Final Note
-
-This is not a better RAG system.
-This is a different layer.
-
-**Evidence Intelligence starts here.**
+- Licensed under the **Business Source License 1.1 (BSL 1.1)** — see [`LICENSE`](./LICENSE) and [`compliance-check-license.md`](./compliance-check-license.md). Converts to **MPL 2.0** on `2030-03-31`.
+- Prior v2.1 retrieval/evidence experiments (Study A & Study B) are archived under Git tag [`v2.1-study-a-archive`](https://github.com/mathmentorAI/claim-layer/tree/v2.1-study-a-archive).

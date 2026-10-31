@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claim-layer"
-version = "2.0.1"
-description = "Compute truth from evidence, not text"
+version = "3.0.0"
+description = "Deterministic computable verification for AI agent outputs"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "LicenseRef-ClaimLayer-BSL-1.1"}
 authors = [
   {name = "Deltoryx"}
@@ -17,8 +17,15 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 
+[project.scripts]
+claimlayer = "claimlayer.cli:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]

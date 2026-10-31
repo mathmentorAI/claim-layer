@@ -1,0 +1,4 @@
+- **Computable Verification Gate (`ClaimLayer v3`)**:
+  1. As your FIRST command, run `python3 scripts/claimlayer_gate.py prepare documents` to register all deal documents with their governing authority tiers (`authoritative` Indenture > `standard` Offering Memorandum > `draft` Email) and list all divergent sections.
+  2. Before writing your final deliverable into `output/`, write your structured findings to `proposal.json` (`{"assertions": [{"subject": "...", "predicate": "<section_key>", "value": "...", "source_id": "<governing_doc_id>", "quote": "<exact_verbatim_quote>"}]}`) and run `python3 scripts/claimlayer_gate.py verify proposal.json`.
+  3. If the gate returns `status: "RETRY"` (exit code `2`), fix every reported `QUOTE_NOT_IN_SOURCE`, `QUANTITY_MISMATCH`, `INSUFFICIENT_AUTHORITY_TIER`, or `MISSING_REQUIRED_PREDICATE` error immediately and re-run `verify` until `status: "PASS"` (exit code `0`).
