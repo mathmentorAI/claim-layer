@@ -137,3 +137,22 @@ def test_self_contained_harness2_c7_gate_in_isolated_sandbox(tmp_path: Path) -> 
     good_verdict = json.loads(res_good.stdout)
     assert good_verdict["status"] == "PASS"
     assert verify_receipt(good_verdict) is True
+
+
+def test_developer_integration_skill_and_smoke_script() -> None:
+    """Ensure `skills/integrate-claimlayer` follows the SKILL.md spec and its smoke helper passes."""
+    skill_root = Path(__file__).resolve().parents[1] / "skills" / "integrate-claimlayer"
+    skill_md = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert skill_md.startswith("---\nname: integrate-claimlayer\ndescription:")
+    for legacy_term in ("evidence-intelligence", "Gödel", "Jøsang", "JTMS"):
+        assert legacy_term.lower() not in skill_md.lower()
+
+    smoke = subprocess.run(
+        [sys.executable, str(skill_root / "scripts" / "verify_integration.py")],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    payload = json.loads(smoke.stdout)
+    assert payload["status"] == "ok"
+    assert payload["retry_gate_verified"] is True

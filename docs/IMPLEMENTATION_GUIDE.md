@@ -2,6 +2,9 @@
 
 This guide shows step-by-step how to integrate **ClaimLayer** into your own AI agents, tool loops, MCP clients, or multi-agent control planes after cloning the repository.
 
+> **Using Claude Code, Antigravity, Cursor, or Codex?**
+> Copy **[`skills/integrate-claimlayer/`](../skills/integrate-claimlayer/SKILL.md)** into your project's `.claude/skills/` or `.agents/skills/` folder and ask your coding agent: *"Use `integrate-claimlayer` to wire ClaimLayer into my project."* It will audit your stack, ask 3 domain questions, implement the gate, and add a deterministic unit test automatically.
+
 ---
 
 ## 1. Mental Model (Where ClaimLayer Sits)
@@ -66,7 +69,6 @@ from claimlayer import (
     Assertion,
     FactRecord,
     Ledger,
-    NumericBound,
     Policy,
     Source,
     verify,
@@ -112,7 +114,7 @@ policy = Policy(
     min_tier_rank=50,  # Blocks `draft` emails from governing (`INSUFFICIENT_AUTHORITY_TIER`)
     required_predicates=["payment_terms", "liability_cap"],
     numeric_bounds={
-        "liability_cap": NumericBound(max_value=500_000, unit="USD", action="ESCALATE")
+        "liability_cap": (None, 500_000.0)  # (min, max) -> triggers ESCALATE above 500,000
     },
 )
 ```

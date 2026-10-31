@@ -43,6 +43,24 @@ python3 examples/harness2_securitization/replay_om_vs_indenture.py
 
 ## 2. How to Implement ClaimLayer in Your Project
 
+### Fastest Way · Let Your AI Coding Agent Wire It Automatically (`Skill`)
+
+`claim-layer` ships with an interactive onboarding skill (**[`skills/integrate-claimlayer/`](./skills/integrate-claimlayer/SKILL.md)**) that inspects your codebase, asks 3 short domain questions, wires `verify()` into your agent loop, and generates a smoke test:
+
+```bash
+# Claude Code
+mkdir -p /path/to/your-project/.claude/skills && cp -R skills/integrate-claimlayer /path/to/your-project/.claude/skills/
+
+# Antigravity / Codex / Agent-Skills compatible IDEs
+mkdir -p /path/to/your-project/.agents/skills && cp -R skills/integrate-claimlayer /path/to/your-project/.agents/skills/
+```
+
+Then ask your coding assistant: ***"Use `integrate-claimlayer` to add ClaimLayer verification to my agent."***
+
+---
+
+### Manual Integration Paths
+
 Keep your existing LLM (`Claude`, `GPT`, `Gemini`), prompts, and RAG pipeline unchanged. Choose whichever integration matches your stack (full reference & error code catalog in **[`docs/IMPLEMENTATION_GUIDE.md`](./docs/IMPLEMENTATION_GUIDE.md)**):
 
 ### Path A · Python Agent Self-Correction Loop (OpenAI / Anthropic / LangGraph)
@@ -178,6 +196,8 @@ See **[`examples/harness2_securitization/`](./examples/harness2_securitization/)
 │   ├── verify.py                         # Pure deterministic verify() gate
 │   ├── mcp_server.py                     # Native JSON-RPC 2.0 MCP server (stdio & HTTP)
 │   └── cli.py                            # `claimlayer verify`, `claimlayer mcp`, `claimlayer demo`
+├── skills/
+│   └── integrate-claimlayer/             # Interactive AI coding-agent setup wizard (SKILL.md + templates)
 ├── docs/
 │   ├── IMPLEMENTATION_GUIDE.md           # Full step-by-step developer integration & error code guide
 │   └── harvey_lab_benchmark.md           # Prior Harvey LAB Study A & Study B empirical observations
